@@ -1,0 +1,16 @@
+[
+{
+  "modid": "pokemongo",
+  "name": "Pokemon GO",
+  "description": "An addon to The Earth Mod, integrating Pokemon GO into Minecraft!",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["gegy1000"],
+  "credits": "TheJurassicAlien, NASA, Google and Niantic",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

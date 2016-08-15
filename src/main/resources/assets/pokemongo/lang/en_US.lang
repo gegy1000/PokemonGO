@@ -1,0 +1,9 @@
+generator.earth_pokemongo=Earth - PokeGO
+
+item.poke_ball.name=Pokeball
+item.incense_ordinary.name=Ordinary Incense
+item.incubator_basic_unlimited.name=Basic Unlimited Incubator
+item.revive.name=Revive
+item.incubator_basic.name=Basic Incubator
+
+item.candy.name=%s Candy

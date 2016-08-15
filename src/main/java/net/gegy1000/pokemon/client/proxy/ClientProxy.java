@@ -1,0 +1,22 @@
+package net.gegy1000.pokemon.client.proxy;
+
+import net.gegy1000.pokemon.client.event.ClientEventHandler;
+import net.gegy1000.pokemon.client.key.PokemonKeyBinds;
+import net.gegy1000.pokemon.server.proxy.ServerProxy;
+import net.minecraftforge.common.MinecraftForge;
+
+public class ClientProxy extends ServerProxy {
+    @Override
+    public void preInit() {
+        super.preInit();
+
+        PokemonKeyBinds.init();
+
+        MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
+    }
+
+    @Override
+    public void postInit() {
+        super.postInit();
+    }
+}
