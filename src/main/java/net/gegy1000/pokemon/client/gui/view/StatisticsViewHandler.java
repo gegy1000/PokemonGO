@@ -1,7 +1,7 @@
 package net.gegy1000.pokemon.client.gui.view;
 
 import com.pokegoapi.api.inventory.Stats;
-import net.gegy1000.pokemon.pokemon.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;

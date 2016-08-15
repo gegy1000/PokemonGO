@@ -1,7 +1,7 @@
 package net.gegy1000.pokemon.client.gui;
 
 import net.gegy1000.pokemon.client.gui.element.PasswordInputElement;
-import net.gegy1000.pokemon.pokemon.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
 import net.ilexiconn.llibrary.client.gui.element.ElementHandler;

@@ -15,7 +15,7 @@ apply plugin: "net.minecraftforge.gradle.forge"
 def mod_file = getModFile()
 version = getVersion("VERSION", mod_file)
 def llibrary_version = getVersion("LLIBRARY_VERSION", mod_file)
-group = "net.gegy1000.pokemon"
+group = "net.gegy1000.util"
 archivesBaseName = "PokemonGO"
 sourceCompatibility = targetCompatibility = "1.8"
 

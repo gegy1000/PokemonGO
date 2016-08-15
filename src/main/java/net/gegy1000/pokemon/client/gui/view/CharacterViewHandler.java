@@ -1,7 +1,7 @@
 package net.gegy1000.pokemon.client.gui.view;
 
 import com.pokegoapi.api.player.PlayerProfile;
-import net.gegy1000.pokemon.pokemon.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraftforge.fml.relauncher.Side;

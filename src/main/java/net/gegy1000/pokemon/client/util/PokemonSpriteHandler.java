@@ -1,4 +1,4 @@
-package net.gegy1000.pokemon.pokemon;
+package net.gegy1000.pokemon.client.util;
 
 import POGOProtos.Enums.PokemonFamilyIdOuterClass;
 import POGOProtos.Enums.PokemonIdOuterClass;
@@ -26,17 +26,17 @@ public class PokemonSpriteHandler {
     private static final Map<Integer, BufferedImage> DOWNLOADED_POKEMON_SPRITES = new HashMap<>();
 
     public static void load() {
-        File tempPokemonDirectory = TempFileUtil.getTempFile("pokemon/sprites");
+        File tempPokemonDirectory = TempFileUtil.getTempFile("util/sprites");
         if (tempPokemonDirectory.exists()) {
             for (File sprite : tempPokemonDirectory.listFiles()) {
                 if (sprite.isFile()) {
                     try {
                         int type = Integer.parseInt(sprite.getName().split("\\.")[0]);
                         BufferedImage read = ImageIO.read(sprite);
-                        POKEMON_SPRITES.put(type, new AdvancedDynamicTexture("pokemon." + type, read));
+                        POKEMON_SPRITES.put(type, new AdvancedDynamicTexture("util." + type, read));
                     } catch (NumberFormatException e) {
                     } catch (Exception e) {
-                        System.err.println("Failed to load cached pokemon sprite: " + sprite.getName());
+                        System.err.println("Failed to load cached util sprite: " + sprite.getName());
                         e.printStackTrace();
                     }
                 }
@@ -59,7 +59,7 @@ public class PokemonSpriteHandler {
             synchronized (POKEMON_SPRITES) {
                 for (Map.Entry<Integer, BufferedImage> entry : DOWNLOADED_POKEMON_SPRITES.entrySet()) {
                     int type = entry.getKey();
-                    POKEMON_SPRITES.put(type, new AdvancedDynamicTexture("pokemon." + type, entry.getValue()));
+                    POKEMON_SPRITES.put(type, new AdvancedDynamicTexture("util." + type, entry.getValue()));
                 }
             }
             DOWNLOADED_POKEMON_SPRITES.clear();
@@ -77,7 +77,7 @@ public class PokemonSpriteHandler {
             new Thread(() -> {
                 URL imageURL = null;
                 try {
-                    imageURL = new URL("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + number + ".png");
+                    imageURL = new URL("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/util/" + number + ".png");
                     HttpsURLConnection connection = (HttpsURLConnection) imageURL.openConnection();
                     connection.setRequestMethod("GET");
                     connection.setRequestProperty("user-agent", "Minecraft Earth-Mod/" + PokemonGO.VERSION);
@@ -85,7 +85,7 @@ public class PokemonSpriteHandler {
                     synchronized (DOWNLOADED_POKEMON_SPRITES) {
                         DOWNLOADED_POKEMON_SPRITES.put(number, image);
                     }
-                    ImageIO.write(image, "png", TempFileUtil.createTempFile("pokemon/sprites/" + number + ".png"));
+                    ImageIO.write(image, "png", TempFileUtil.createTempFile("util/sprites/" + number + ".png"));
                 } catch (Exception e) {
                     System.err.println("Failed to download Pokemon sprite " + number);
                     e.printStackTrace();

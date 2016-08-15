@@ -5,7 +5,7 @@ import com.pokegoapi.api.player.PlayerLevelUpRewards;
 import net.gegy1000.pokemon.PokemonGO;
 import net.gegy1000.pokemon.client.gui.LoginGUI;
 import net.gegy1000.pokemon.client.gui.PokemonGUI;
-import net.gegy1000.pokemon.pokemon.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
 import net.ilexiconn.llibrary.client.gui.element.ElementHandler;

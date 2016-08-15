@@ -1,6 +1,6 @@
 package net.gegy1000.pokemon.client.gui;
 
-import net.gegy1000.pokemon.pokemon.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;

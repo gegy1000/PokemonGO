@@ -1,4 +1,4 @@
-package net.gegy1000.pokemon.pokemon;
+package net.gegy1000.pokemon.client.util;
 
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.device.DeviceInfo;

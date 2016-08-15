@@ -1,6 +1,6 @@
 package net.gegy1000.pokemon;
 
-import net.gegy1000.pokemon.pokemon.PokemonSpriteHandler;
+import net.gegy1000.pokemon.client.util.PokemonSpriteHandler;
 import net.gegy1000.pokemon.server.proxy.ServerProxy;
 import net.gegy1000.pokemon.server.world.gen.PokemonEarthGenerator;
 import net.gegy1000.pokemon.server.world.gen.WorldTypePokemonEarth;
@@ -19,7 +19,7 @@ public class PokemonGO {
     //TODO fix game lock when sometimes switching to inventory tab
     public static final PokemonEarthGenerator GENERATOR = new PokemonEarthGenerator();
 
-    @SidedProxy(clientSide = "net.gegy1000.pokemon.client.proxy.ClientProxy", serverSide = "net.gegy1000.pokemon.server.proxy.ServerProxy")
+    @SidedProxy(clientSide = "net.gegy1000.util.client.proxy.ClientProxy", serverSide = "net.gegy1000.util.server.proxy.ServerProxy")
     public static ServerProxy proxy;
 
     public static final String MODID = "pokemongo";
