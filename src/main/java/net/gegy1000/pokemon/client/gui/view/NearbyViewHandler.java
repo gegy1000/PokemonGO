@@ -10,6 +10,7 @@ import net.ilexiconn.llibrary.LLibrary;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -24,6 +25,10 @@ public class NearbyViewHandler extends ViewHandler {
     private List<NearbyPokemon> nearbyPokemon = null;
     private boolean loadingNearbyPokemon;
     private boolean nearbyFailed;
+
+    public NearbyViewHandler(PokemonViewGUI gui) {
+        super(gui);
+    }
 
     @Override
     public void render(float mouseX, float mouseY, float partialTicks) {
@@ -50,7 +55,7 @@ public class NearbyViewHandler extends ViewHandler {
         }
         if (this.nearbyPokemon != null && !this.loadingNearbyPokemon && !this.nearbyFailed) {
             if (this.nearbyPokemon.size() > 0) {
-                this.fontRendererObj.drawString("Spotted " + this.nearbyPokemon.size() + " Pokémon in your general area.", 5, 23, textColor);
+                this.fontRenderer.drawString(I18n.translateToLocalFormatted("gui.spotted.name", this.nearbyPokemon.size()), 5, 23, textColor);
                 int x = 0;
                 int y = 0;
                 Map<PokemonIdOuterClass.PokemonId, Integer> nearbyPokemon = new HashMap<>();
@@ -73,7 +78,7 @@ public class NearbyViewHandler extends ViewHandler {
                         this.drawTexturedModalRect(renderX, renderY, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize, tileRenderSize);
                     }
                     if (pokemon.getValue() > 1) {
-                        this.fontRendererObj.drawString("x" + pokemon.getValue(), renderX + 2, renderY + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
+                        this.fontRenderer.drawString("x" + pokemon.getValue(), renderX + 2, renderY + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
                     }
                     x++;
                     if (x > 10) {
@@ -106,12 +111,12 @@ public class NearbyViewHandler extends ViewHandler {
                 }
                 GlStateManager.disableLighting();
             } else {
-                this.fontRendererObj.drawString("Could not find any Pokémon near you!", 5, 23, textColor);
+                this.fontRenderer.drawString(I18n.translateToLocal("gui.no_nearby.name"), 5, 23, textColor);
             }
         } else if (this.nearbyFailed) {
-            this.fontRendererObj.drawString("Failed to find any Pokémon...", 5, 23, textColor);
+            this.fontRenderer.drawString(I18n.translateToLocal("gui.nearby_failed.name"), 5, 23, textColor);
         } else {
-            this.fontRendererObj.drawString("Searching for Pokémon...", 5, 23, textColor);
+            this.fontRenderer.drawString(I18n.translateToLocal("gui.searching_nearby"), 5, 23, textColor);
         }
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }

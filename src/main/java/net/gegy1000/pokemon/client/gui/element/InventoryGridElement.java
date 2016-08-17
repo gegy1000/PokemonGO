@@ -16,16 +16,22 @@ import java.util.function.Function;
 @SideOnly(Side.CLIENT)
 public class InventoryGridElement<T extends GuiScreen> extends Element<T> {
     private ScrollbarElement<T> scrollbar;
-    private final Function<SlotRenderer, Void> renderFunction;
+    private final Function<SlotHandler, Void> renderFunction;
+    private final Function<SlotHandler, Boolean> clickFunction;
     private final int tileSize;
     private final int tilesX;
     private int size;
 
-    public InventoryGridElement(T gui, float posX, float posY, int width, int height, int tilesX, int tileSize, Function<SlotRenderer, Void> renderFunction) {
+    public InventoryGridElement(T gui, float posX, float posY, int width, int height, int tilesX, int tileSize, Function<SlotHandler, Void> renderFunction) {
+        this(gui, posX, posY, width, height, tilesX, tileSize, renderFunction, null);
+    }
+
+    public InventoryGridElement(T gui, float posX, float posY, int width, int height, int tilesX, int tileSize, Function<SlotHandler, Void> renderFunction, Function<SlotHandler, Boolean> clickFunction) {
         super(gui, posX, posY, width, height);
         this.tilesX = tilesX;
         this.tileSize = tileSize;
         this.renderFunction = renderFunction;
+        this.clickFunction = clickFunction;
     }
 
     @Override
@@ -41,21 +47,35 @@ public class InventoryGridElement<T extends GuiScreen> extends Element<T> {
         mouseX -= this.getPosX();
         mouseY -= this.getPosY();
         mouseY += this.scrollbar.getScrollOffset();
-        this.renderFunction.apply(new SlotRenderer(this, mouseX, mouseY));
+        this.renderFunction.apply(new SlotHandler(this, mouseX, mouseY));
         GlStateManager.disableLighting();
         GlStateManager.popMatrix();
+    }
+
+    @Override
+    public boolean mouseClicked(float mouseX, float mouseY, int button) {
+        if (this.isSelected(mouseX, mouseY)) {
+            if (this.clickFunction != null) {
+                mouseX -= this.getPosX();
+                mouseY -= this.getPosY();
+                mouseY += this.scrollbar.getScrollOffset();
+                return this.clickFunction.apply(new SlotHandler(this, mouseX, mouseY));
+            }
+        }
+        return false;
     }
 
     public int getRenderTileSize() {
         return this.tileSize - 2;
     }
 
-    public static class SlotRenderer {
+    public static class SlotHandler {
         private final InventoryGridElement<?> grid;
         private final float mouseX;
         private final float mouseY;
+        private boolean clicked;
 
-        public SlotRenderer(InventoryGridElement<?> grid, float mouseX, float mouseY) {
+        public SlotHandler(InventoryGridElement<?> grid, float mouseX, float mouseY) {
             this.grid = grid;
             this.mouseX = mouseX;
             this.mouseY = mouseY;
@@ -96,6 +116,32 @@ public class InventoryGridElement<T extends GuiScreen> extends Element<T> {
                     }
                 }
             }
+        }
+
+        public boolean click(Function<Slot, Boolean> clickFunction, int amount) {
+            float scrollOffset = this.grid.scrollbar.getScrollOffset();
+            if (this.mouseX >= 0.0F && this.mouseX <= this.grid.getWidth() && this.mouseY >= scrollOffset && this.mouseY <= this.grid.getHeight() + scrollOffset) {
+                int x = 0;
+                int y = 0;
+                int tileSize = this.grid.tileSize;
+                int renderTileSize = this.grid.getRenderTileSize();
+                for (int i = 0; i < amount; i++) {
+                    float renderX = x * tileSize;
+                    float renderY = y * tileSize;
+                    if (this.mouseX >= renderX && this.mouseX <= renderX + renderTileSize && this.mouseY >= renderY && this.mouseY <= renderY + renderTileSize) {
+                        return this.clicked = clickFunction.apply(new Slot(renderX, renderY, i));
+                    }
+                    if (++x >= this.grid.tilesX) {
+                        x = 0;
+                        y++;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public boolean getClicked() {
+            return this.clicked;
         }
 
         public InventoryGridElement<?> getGrid() {

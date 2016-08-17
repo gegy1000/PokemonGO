@@ -55,24 +55,28 @@ public class PokestopGUI extends PokemonGUI {
                 }
             }).start();
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void initElements() {
-        ElementHandler.INSTANCE.addElement(this, this.lootButton = new ButtonElement<>(this, "Loot", 0, this.height - 36, this.width, 18, (button) -> {
+        ElementHandler.INSTANCE.addElement(this, this.lootButton = new ButtonElement<>(this, I18n.translateToLocal("gui.loot.name"), 0, this.height - 36, this.width, 18, (button) -> {
             if (this.pokestop.canLoot()) {
-                try {
-                    this.result = this.pokestop.loot();
-                    if (this.result.getResult() == FortSearchResponseOuterClass.FortSearchResponse.Result.INVENTORY_FULL) {
-                        WindowElement<PokestopGUI> window = new WindowElement<>(this, "Failed to loot!", 115, 26);
-                        new LabelElement<>(this, "Your inventory is full!", 2, 16).withParent(window);
-                        ElementHandler.INSTANCE.addElement(this, window);
+                new Thread(() -> {
+                    try {
+                        this.result = this.pokestop.loot();
+                        if (this.result.getResult() == FortSearchResponseOuterClass.FortSearchResponse.Result.INVENTORY_FULL) {
+                            WindowElement<PokestopGUI> window = new WindowElement<>(this, I18n.translateToLocal("gui.failure.name"), 115, 26);
+                            new LabelElement<>(this, I18n.translateToLocal("gui.inventory_full.name"), 2, 16).withParent(window);
+                            ElementHandler.INSTANCE.addElement(this, window);
+                            PokemonHandler.GO.getPlayerProfile().updateProfile();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    return true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                }).start();
+                return true;
             }
             return false;
         }));
@@ -83,15 +87,15 @@ public class PokestopGUI extends PokemonGUI {
         try {
             this.drawRectangle(0, this.height - 18.0F, this.width, 18.0F, LLibrary.CONFIG.getPrimaryColor());
             this.drawRectangle(0, 0, this.width, 18.0F, LLibrary.CONFIG.getPrimaryColor());
-            String titleString = "Pokéstop";
+            String titleString = I18n.translateToLocal("pokemon.pokestop.name");
             this.fontRendererObj.drawString(titleString, this.width / 2 - this.fontRendererObj.getStringWidth(titleString) / 2, 6, LLibrary.CONFIG.getTextColor(), false);
             if (PokemonHandler.GO != null) {
-                String lootability = "Lootable";
+                String lootability = I18n.translateToLocal("gui.lootable.name");
                 boolean enabled = true;
                 if (!this.pokestop.canLoot()) {
                     enabled = false;
                     if (!this.pokestop.inRange()) {
-                        lootability = "Out of range";
+                        lootability = I18n.translateToLocal("gui.far.name");
                     } else {
                         long cooldown = this.pokestop.getCooldownCompleteTimestampMs() - PokemonHandler.GO.currentTimeMillis();
                         if (cooldown > 0) {
@@ -107,10 +111,10 @@ public class PokestopGUI extends PokemonGUI {
                 }
             }
             if (this.details != null) {
-                String description = "\"" + (this.details.getDescription().length() == 0 ? "No description" : this.details.getDescription()) + "\"";
+                String description = "\"" + (this.details.getDescription().length() == 0 ? I18n.translateToLocal("gui.no_description.name") : this.details.getDescription()) + "\"";
                 this.fontRendererObj.drawString(description, this.width / 2 - this.fontRendererObj.getStringWidth(description) / 2, 24.0F, LLibrary.CONFIG.getTextColor(), false);
                 if (this.hasLure()) {
-                    this.fontRendererObj.drawString("Luring", 5, this.height - 12, LLibrary.CONFIG.getTextColor());
+                    this.fontRendererObj.drawString(I18n.translateToLocal("Luring"), 5, this.height - 12, LLibrary.CONFIG.getTextColor());
                 }
             }
             if (this.iconImage != null && this.icon == null) {
@@ -135,12 +139,12 @@ public class PokestopGUI extends PokemonGUI {
                     this.drawRectangle(x * tileSize + tileOffsetX, y * tileSize + tileOffsetY, tileRenderSize, tileRenderSize, LLibrary.CONFIG.getSecondaryColor());
                 }
             }
-            this.fontRendererObj.drawString("Looted Items:", tileOffsetX, tileOffsetY - 15, LLibrary.CONFIG.getTextColor());
+            this.fontRendererObj.drawString(I18n.translateToLocal("gui.looted_items.name"), tileOffsetX, tileOffsetY - 15, LLibrary.CONFIG.getTextColor());
             if (this.result != null) {
                 if (!this.result.wasSuccessful()) {
                     this.result = null;
                 } else {
-                    String earnedXP = "Earned " + this.result.getExperience() + " XP!";
+                    String earnedXP = I18n.translateToLocalFormatted("gui.earned_xp.name", String.valueOf(this.result.getExperience()));
                     this.fontRendererObj.drawString(earnedXP, this.width / 2 - this.fontRendererObj.getStringWidth(earnedXP) / 2, iconY - 15, LLibrary.CONFIG.getTextColor());
                     int x = 0;
                     int y = 0;
@@ -193,6 +197,7 @@ public class PokestopGUI extends PokemonGUI {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

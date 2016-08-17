@@ -1,26 +1,30 @@
-package net.gegy1000.pokemon.client.gui.view;
+package net.gegy1000.pokemon.client.gui.view.inventory;
 
+import com.pokegoapi.api.inventory.Inventories;
+import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
+import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraftforge.fml.client.config.GuiUtils;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
-@SideOnly(Side.CLIENT)
-public abstract class ViewHandler {
+public abstract class InventoryHandler {
     protected Minecraft mc = Minecraft.getMinecraft();
     protected FontRenderer fontRenderer = this.mc.fontRendererObj;
     private PokemonViewGUI gui;
+    private InventoryViewHandler inventoryView;
 
-    public ViewHandler(PokemonViewGUI gui) {
+    public void init(PokemonViewGUI gui, InventoryViewHandler inventoryView) {
+        this.inventoryView = inventoryView;
         this.gui = gui;
     }
 
-    protected PokemonViewGUI getGUI() {
-        return this.gui;
-    }
+    public abstract void render(Inventories inventories, float mouseX, float mouseY, float partialTicks) throws Exception;
+
+    public abstract void renderSlots(Inventories inventories, InventoryGridElement.SlotHandler slotHandler) throws Exception;
+
+    public abstract void click(Inventories inventories, InventoryGridElement.SlotHandler slotHandler) throws Exception;
 
     protected void drawTexturedModalRect(float x, float y, float minU, float minV, float maxU, float maxV, float width, float height) {
         this.getGUI().drawTexturedModalRect(x, y, minU, minV, maxU, maxV, width, height);
@@ -38,11 +42,11 @@ public abstract class ViewHandler {
         GuiUtils.drawHoveringText(textLines, x, y, this.getGUI().width, this.getGUI().height, -1, this.fontRenderer);
     }
 
-    public abstract void render(float mouseX, float mouseY, float partialTicks);
+    protected PokemonViewGUI getGUI() {
+        return this.gui;
+    }
 
-    public abstract void mouseClicked(float mouseX, float mouseY);
-
-    public abstract void initView();
-
-    public abstract void cleanupView();
+    protected InventoryViewHandler getInventoryView() {
+        return this.inventoryView;
+    }
 }

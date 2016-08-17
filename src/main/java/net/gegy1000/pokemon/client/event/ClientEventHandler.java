@@ -7,14 +7,15 @@ import com.pokegoapi.util.PokeNames;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
 import net.gegy1000.pokemon.PokemonGO;
 import net.gegy1000.pokemon.client.gui.CapturePokemonGUI;
+import net.gegy1000.pokemon.client.gui.GymGUI;
 import net.gegy1000.pokemon.client.gui.LoginGUI;
 import net.gegy1000.pokemon.client.gui.PokestopGUI;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.gegy1000.pokemon.client.key.PokemonKeyBinds;
+import net.gegy1000.pokemon.client.model.GymModel;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.gegy1000.pokemon.client.util.PokemonSpriteHandler;
 import net.gegy1000.pokemon.server.world.gen.WorldTypePokemonEarth;
-import net.ilexiconn.llibrary.LLibrary;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
@@ -51,7 +52,7 @@ public class ClientEventHandler {
     private boolean pokemonListCompiled;
 
     private static final ResourceLocation GYM_TEXTURE = new ResourceLocation("textures/entity/creeper/creeper.png");
-    private static final ModelCreeper GYM_MODEL = new ModelCreeper();
+    private static final GymModel GYM_MODEL = new GymModel();
 
     private static final ResourceLocation POKESTOP_TEXTURE = new ResourceLocation("textures/entity/pig/pig.png");
     private static final ModelPig POKESTOP_MODEL = new ModelPig();
@@ -85,31 +86,47 @@ public class ClientEventHandler {
     private void interactMapObjects() {
         if (PokemonHandler.GO != null && MC.currentScreen == null) {
             try {
-                Map<Pokestop, AxisAlignedBB> pokestopBounds = new HashMap<>();
                 EntityPlayerSP player = MC.thePlayer;
                 Map<CatchablePokemon, AxisAlignedBB> pokemonBounds = new HashMap<>();
                 for (CatchablePokemon pokemon : PokemonHandler.GO.getMap().getCatchablePokemon()) {
                     double x = PokemonGO.GENERATOR.fromLong(pokemon.getLongitude());
                     double z = PokemonGO.GENERATOR.fromLat(pokemon.getLatitude());
                     int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
-                    pokemonBounds.put(pokemon, new AxisAlignedBB(x - 0.3, y, z - 0.3, x + 0.3, y + 1.0, z + 0.3));
+                    pokemonBounds.put(pokemon, new AxisAlignedBB(x - 2.0, y, z - 2.0, x + 2.0, y + 4.0, z + 2.0));
                 }
                 CatchablePokemon pokemon = this.getInteract(player, pokemonBounds);
                 if (pokemon != null) {
                     MC.displayGuiScreen(new CapturePokemonGUI(pokemon));
-                } else {
-                    for (Pokestop pokestop : PokemonHandler.GO.getMap().getMapObjects().getPokestops()) {
-                        double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
-                        double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
-                        int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
-                        pokestopBounds.put(pokestop, new AxisAlignedBB(x - 0.3, y, z - 0.3, x + 0.3, y + 1.0, z + 0.3));
-                    }
-                    Pokestop pokestop = this.getInteract(player, pokestopBounds);
-                    if (pokestop != null) {
-                        MC.displayGuiScreen(new PokestopGUI(pokestop));
-                    }
+                    return;
+                }
+
+                Map<Pokestop, AxisAlignedBB> pokestopBounds = new HashMap<>();
+                for (Pokestop pokestop : PokemonHandler.GO.getMap().getMapObjects().getPokestops()) {
+                    double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
+                    double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
+                    int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
+                    pokestopBounds.put(pokestop, new AxisAlignedBB(x - 3.0, y, z - 3.0, x + 3.0, y + 6.0, z + 3.0));
+                }
+                Pokestop pokestop = this.getInteract(player, pokestopBounds);
+                if (pokestop != null) {
+                    MC.displayGuiScreen(new PokestopGUI(pokestop));
+                    return;
+                }
+
+                Map<Gym, AxisAlignedBB> gymBounds = new HashMap<>();
+                for (Gym gym : PokemonHandler.GO.getMap().getGyms()) {
+                    double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
+                    double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
+                    int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
+                    gymBounds.put(gym, new AxisAlignedBB(x - 3.0, y, z - 3.0, x + 3.0, y + 12.0, z + 3.0));
+                }
+                Gym gym = this.getInteract(player, gymBounds);
+                if (gym != null) {
+                    MC.displayGuiScreen(new GymGUI(gym));
+                    return;
                 }
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -143,106 +160,78 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onWorldRender(RenderWorldLastEvent event) {
         if (PokemonHandler.GO != null && MC.theWorld.getWorldType() instanceof WorldTypePokemonEarth) {
-            this.renderPokemonFeatures();
+            this.renderPokemonFeatures(event.getPartialTicks());
         }
     }
 
-    private void renderPokemonFeatures() {
+    private void renderPokemonFeatures(float partialTicks) {
         if (!this.pokemonListCompiled) {
-            this.pokemonDisplayList = GLAllocation.generateDisplayLists(1);
-            GlStateManager.glNewList(this.pokemonDisplayList, GL11.GL_COMPILE);
-            Tessellator tessellator = Tessellator.getInstance();
-            VertexBuffer buffer = tessellator.getBuffer();
-            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-            buffer.pos(0.0, 1.0, -0.5).tex(0.0, 1.0).endVertex();
-            buffer.pos(0.0, 1.0, 0.5).tex(1.0, 1.0).endVertex();
-            buffer.pos(0.0, 0.0, 0.5).tex(1.0, 0.0).endVertex();
-            buffer.pos(0.0, 0.0, -0.5).tex(0.0, 0.0).endVertex();
-            buffer.pos(0.025, 1.0, -0.5).tex(0.0, 1.0).endVertex();
-            buffer.pos(0.025, 1.0, 0.5).tex(1.0, 1.0).endVertex();
-            buffer.pos(0.025, 0.0, 0.5).tex(1.0, 0.0).endVertex();
-            buffer.pos(0.025, 0.0, -0.5).tex(0.0, 0.0).endVertex();
-            tessellator.draw();
-
-            float scale = 1.0F / 96.0F;
-
-            for (int lineX = 0; lineX < 96; lineX++) {
-                float textureX = lineX * scale;
-                float textureX2 = (lineX + 1) * scale;
-                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-                buffer.pos(0.0, 0.0, textureX - 0.5).tex(textureX, 0.0).endVertex();
-                buffer.pos(0.0, 1.0, textureX - 0.5).tex(textureX, 1.0).endVertex();
-                buffer.pos(0.025, 1.0, textureX - 0.5).tex(textureX2, 1.0).endVertex();
-                buffer.pos(0.025, 0.0, textureX - 0.5).tex(textureX2, 0.0).endVertex();
-                tessellator.draw();
-                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-                buffer.pos(0.0, 0.0, textureX2 - 0.5).tex(textureX, 0.0).endVertex();
-                buffer.pos(0.0, 1.0, textureX2 - 0.5).tex(textureX, 1.0).endVertex();
-                buffer.pos(0.025, 1.0, textureX2 - 0.5).tex(textureX2, 1.0).endVertex();
-                buffer.pos(0.025, 0.0, textureX2 - 0.5).tex(textureX2, 0.0).endVertex();
-                tessellator.draw();
-            }
-
-            for (int lineY = 0; lineY < 96; lineY++) {
-                float textureY = lineY * scale;
-                float textureY2 = (lineY + 1) * scale;
-                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-                buffer.pos(0.0, textureY, -0.5).tex(0.0, textureY).endVertex();
-                buffer.pos(0.0, textureY, 0.5).tex(1.0, textureY).endVertex();
-                buffer.pos(0.025, textureY, 0.5).tex(1.0, textureY2).endVertex();
-                buffer.pos(0.025, textureY, -0.5).tex(0.0, textureY2).endVertex();
-                tessellator.draw();
-                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-                buffer.pos(0.0, textureY2, -0.5).tex(0.0, textureY).endVertex();
-                buffer.pos(0.0, textureY2, 0.5).tex(1.0, textureY).endVertex();
-                buffer.pos(0.025, textureY2, 0.5).tex(1.0, textureY2).endVertex();
-                buffer.pos(0.025, textureY2, -0.5).tex(0.0, textureY2).endVertex();
-                tessellator.draw();
-            }
-            GlStateManager.glEndList();
-            this.pokemonListCompiled = true;
+            this.compilePokemonList();
         }
         try {
             EntityPlayerSP player = MC.thePlayer;
-            float partialTicks = LLibrary.PROXY.getPartialTicks();
             double viewX = player.prevPosX + (player.posX - player.prevPosX) * partialTicks;
             double viewY = player.prevPosY + (player.posY - player.prevPosY) * partialTicks;
             double viewZ = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
             GlStateManager.disableCull();
             GlStateManager.enableTexture2D();
             GlStateManager.enableBlend();
-            GlStateManager.disableLighting();
+            GlStateManager.enableFog();
             MC.getTextureManager().bindTexture(GYM_TEXTURE);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glNormal3f(1.0F, 1.0F, 1.0F);
+            GlStateManager.disableTexture2D();
+            RenderHelper.enableStandardItemLighting();
+            MC.entityRenderer.enableLightmap();
             for (Gym gym : PokemonHandler.GO.getMap().getGyms()) {
                 GlStateManager.pushMatrix();
+                switch (gym.getOwnedByTeam()) {
+                    case BLUE:
+                        GlStateManager.color(0.0F, 0.0F, 1.0F, 1.0F);
+                        break;
+                    case NEUTRAL:
+                        GlStateManager.color(0.0F, 1.0F, 1.0F, 1.0F);
+                        break;
+                    case RED:
+                        GlStateManager.color(1.0F, 0.0F, 0.0F, 1.0F);
+                        break;
+                    case YELLOW:
+                        GlStateManager.color(1.0F, 1.0F, 0.0F, 1.0F);
+                        break;
+                    case UNRECOGNIZED:
+                        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                        break;
+                }
                 double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
                 double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
                 int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
                 GlStateManager.translate(x - viewX, y - viewY, z - viewZ);
-                GlStateManager.scale(1.0F, -1.0F, 1.0F);
+                GlStateManager.scale(4.0F, -4.0F, 4.0F);
                 GlStateManager.translate(0.0F, -1.5F, 0.0F);
                 GYM_MODEL.render(null, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F);
                 GlStateManager.popMatrix();
             }
+            GlStateManager.enableTexture2D();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             MC.getTextureManager().bindTexture(POKESTOP_TEXTURE);
             for (Pokestop pokestop : PokemonHandler.GO.getMap().getMapObjects().getPokestops()) {
                 GlStateManager.pushMatrix();
                 double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
                 double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
                 int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
+                int light = player.worldObj.getCombinedLight(new BlockPos(x, y, z), 0);
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
                 GlStateManager.translate(x - viewX, y - viewY, z - viewZ);
-                GlStateManager.scale(1.0F, -1.0F, 1.0F);
+                GlStateManager.scale(8.0F, -8.0F, 8.0F);
                 GlStateManager.translate(0.0F, -1.5F, 0.0F);
                 POKESTOP_MODEL.render(null, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F);
                 GlStateManager.popMatrix();
             }
-            RenderHelper.enableStandardItemLighting();
-            MC.entityRenderer.enableLightmap();
-            GL11.glNormal3f(1.0F, 1.0F, 1.0F);
             for (CatchablePokemon pokemon : PokemonHandler.GO.getMap().getCatchablePokemon()) {
                 AdvancedDynamicTexture texture = PokemonSpriteHandler.get(pokemon.getPokemonId());
                 GlStateManager.pushMatrix();
+                GL11.glNormal3f(1.0F, 1.0F, 1.0F);
                 double x = PokemonGO.GENERATOR.fromLong(pokemon.getLongitude());
                 double z = PokemonGO.GENERATOR.fromLat(pokemon.getLatitude());
                 int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
@@ -251,12 +240,10 @@ public class ClientEventHandler {
                 double deltaX = x - viewX;
                 double deltaZ = z - viewZ;
                 GlStateManager.translate(deltaX, y - viewY, deltaZ);
-                GlStateManager.scale(2.0F, -2.0F, 2.0F);
+                GlStateManager.scale(6.0F, -6.0F, 6.0F);
                 GlStateManager.translate(0.0F, -0.8F, 0.0F);
-                float timer = (float) (player.ticksExisted + x + z + partialTicks);
                 GlStateManager.rotate(-MC.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
                 GlStateManager.rotate(90.0F, 0.0F, 1.0F, 0.0F);
-                GlStateManager.translate(0.0F, Math.sin(timer * 0.125F) * 0.025F, 0.0F);
                 if (texture != null) {
                     texture.bind();
                     GlStateManager.callList(this.pokemonDisplayList);
@@ -265,12 +252,12 @@ public class ClientEventHandler {
                 double distance = deltaX * deltaX + deltaZ * deltaZ;
                 if (distance <= 1024) {
                     GlStateManager.pushMatrix();
-                    GlStateManager.translate(deltaX, y + 1.25F - viewY, deltaZ);
+                    GlStateManager.translate(deltaX, y + 4.25F - viewY, deltaZ);
                     String name = PokeNames.getDisplayName(pokemon.getPokemonId().getNumber(), Locale.ENGLISH);
                     GlStateManager.glNormal3f(0.0F, 1.0F, 0.0F);
                     GlStateManager.rotate(-MC.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
                     GlStateManager.rotate((MC.getRenderManager().options.thirdPersonView == 2 ? -1 : 1) * MC.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
-                    GlStateManager.scale(-0.025F, -0.025F, 0.025F);
+                    GlStateManager.scale(-0.1F, -0.1F, 0.1F);
                     GlStateManager.disableLighting();
                     GlStateManager.depthMask(false);
                     GlStateManager.disableDepth();
@@ -299,8 +286,54 @@ public class ClientEventHandler {
                 }
                 OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, OpenGlHelper.lastBrightnessX, OpenGlHelper.lastBrightnessY);
             }
+            GlStateManager.disableFog();
             MC.entityRenderer.disableLightmap();
         } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    private void compilePokemonList() {
+        this.pokemonDisplayList = GLAllocation.generateDisplayLists(1);
+        GlStateManager.glNewList(this.pokemonDisplayList, GL11.GL_COMPILE);
+        Tessellator tessellator = Tessellator.getInstance();
+        VertexBuffer buffer = tessellator.getBuffer();
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        buffer.pos(0.0, 1.0, -0.5).tex(0.0, 1.0).endVertex();
+        buffer.pos(0.0, 1.0, 0.5).tex(1.0, 1.0).endVertex();
+        buffer.pos(0.0, 0.0, 0.5).tex(1.0, 0.0).endVertex();
+        buffer.pos(0.0, 0.0, -0.5).tex(0.0, 0.0).endVertex();
+        buffer.pos(0.025, 1.0, -0.5).tex(0.0, 1.0).endVertex();
+        buffer.pos(0.025, 1.0, 0.5).tex(1.0, 1.0).endVertex();
+        buffer.pos(0.025, 0.0, 0.5).tex(1.0, 0.0).endVertex();
+        buffer.pos(0.025, 0.0, -0.5).tex(0.0, 0.0).endVertex();
+        float scale = 1.0F / 96.0F;
+        for (int lineX = 0; lineX < 96; lineX++) {
+            float textureX = lineX * scale;
+            float textureX2 = (lineX + 1) * scale;
+            buffer.pos(0.0, 0.0, textureX - 0.5).tex(textureX, 0.0).endVertex();
+            buffer.pos(0.0, 1.0, textureX - 0.5).tex(textureX, 1.0).endVertex();
+            buffer.pos(0.025, 1.0, textureX - 0.5).tex(textureX2, 1.0).endVertex();
+            buffer.pos(0.025, 0.0, textureX - 0.5).tex(textureX2, 0.0).endVertex();
+            buffer.pos(0.0, 0.0, textureX2 - 0.5).tex(textureX, 0.0).endVertex();
+            buffer.pos(0.0, 1.0, textureX2 - 0.5).tex(textureX, 1.0).endVertex();
+            buffer.pos(0.025, 1.0, textureX2 - 0.5).tex(textureX2, 1.0).endVertex();
+            buffer.pos(0.025, 0.0, textureX2 - 0.5).tex(textureX2, 0.0).endVertex();
+        }
+        for (int lineY = 0; lineY < 96; lineY++) {
+            float textureY = lineY * scale;
+            float textureY2 = (lineY + 1) * scale;
+            buffer.pos(0.0, textureY, -0.5).tex(0.0, textureY).endVertex();
+            buffer.pos(0.0, textureY, 0.5).tex(1.0, textureY).endVertex();
+            buffer.pos(0.025, textureY, 0.5).tex(1.0, textureY2).endVertex();
+            buffer.pos(0.025, textureY, -0.5).tex(0.0, textureY2).endVertex();
+            buffer.pos(0.0, textureY2, -0.5).tex(0.0, textureY).endVertex();
+            buffer.pos(0.0, textureY2, 0.5).tex(1.0, textureY).endVertex();
+            buffer.pos(0.025, textureY2, 0.5).tex(1.0, textureY2).endVertex();
+            buffer.pos(0.025, textureY2, -0.5).tex(0.0, textureY2).endVertex();
+        }
+        tessellator.draw();
+        GlStateManager.glEndList();
+        this.pokemonListCompiled = true;
     }
 }

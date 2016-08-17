@@ -1,9 +1,13 @@
 package net.gegy1000.pokemon.server.world.gen;
 
 import net.gegy1000.earth.server.world.gen.EarthGenerator;
+import net.minecraft.init.Biomes;
+import net.minecraft.world.biome.Biome;
+
+import java.util.Random;
 
 public class PokemonEarthGenerator extends EarthGenerator {
-    private static final double WORLD_SCALE = 40.0;
+    private static final double WORLD_SCALE = 232;
 
     @Override
     protected double getWorldScale() {
@@ -22,10 +26,15 @@ public class PokemonEarthGenerator extends EarthGenerator {
     public double getHeight(int x, int y) {
         double height = this.extractHeight(x, y);
         if (height < 62) {
-            height /= 10.4;
+            height = 15;
         } else {
-            height -= 55;
+            height = 23 + new Random(y * 43200L + x).nextInt(5);
         }
-        return Math.max(1, height * 3.1);
+        return height;
+    }
+
+    @Override
+    public Biome getBiomeForCoords(int x, int z) {
+        return this.getHeightForCoords(x, z) < 21 ? DEFAULT_BIOME : Biomes.PLAINS;
     }
 }

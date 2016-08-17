@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class PokemonSpriteHandler {
     private static final Map<ItemIdOuterClass.ItemId, ResourceLocation> ITEM_TEXTURES = new HashMap<>();
-    private static final Map<PokemonFamilyIdOuterClass.PokemonFamilyId, ResourceLocation> CANDY_TEXTURES = new HashMap<>();
+    private static final ResourceLocation CANDY_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/candy.png");
 
     private static final Map<Integer, AdvancedDynamicTexture> POKEMON_SPRITES = new HashMap<>();
     private static final Map<Integer, BufferedImage> DOWNLOADED_POKEMON_SPRITES = new HashMap<>();
@@ -45,11 +45,6 @@ public class PokemonSpriteHandler {
         for (ItemIdOuterClass.ItemId item : ItemIdOuterClass.ItemId.values()) {
             if (item != ItemIdOuterClass.ItemId.ITEM_UNKNOWN) {
                 ITEM_TEXTURES.put(item, new ResourceLocation(PokemonGO.MODID, "textures/items/" + item.name().toLowerCase(Locale.ENGLISH).replaceAll("item_", "") + ".png"));
-            }
-        }
-        for (PokemonFamilyIdOuterClass.PokemonFamilyId family : PokemonFamilyIdOuterClass.PokemonFamilyId.values()) {
-            if (family != PokemonFamilyIdOuterClass.PokemonFamilyId.UNRECOGNIZED) {
-                CANDY_TEXTURES.put(family, new ResourceLocation(PokemonGO.MODID, "textures/items/" + family.name().replaceAll("FAMILY_", "").toLowerCase(Locale.ENGLISH)));
             }
         }
     }
@@ -101,7 +96,6 @@ public class PokemonSpriteHandler {
     }
 
     public static ResourceLocation get(PokemonFamilyIdOuterClass.PokemonFamilyId candy) {
-        ResourceLocation texture = CANDY_TEXTURES.get(candy);
-        return texture == null ? TextureMap.LOCATION_MISSING_TEXTURE : texture;
+        return CANDY_TEXTURE;
     }
 }

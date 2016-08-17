@@ -16,7 +16,6 @@ import java.io.IOException;
 
 @Mod(modid = PokemonGO.MODID, name = "PokemonGO", version = PokemonGO.VERSION, dependencies = "required-after:llibrary@[" + PokemonGO.LLIBRARY_VERSION + ",);required-after:earth@[1.1.0,]")
 public class PokemonGO {
-    //TODO fix game lock when sometimes switching to inventory tab
     public static final PokemonEarthGenerator GENERATOR = new PokemonEarthGenerator();
 
     @SidedProxy(clientSide = "net.gegy1000.pokemon.client.proxy.ClientProxy", serverSide = "net.gegy1000.pokemon.server.proxy.ServerProxy")
@@ -34,6 +33,7 @@ public class PokemonGO {
         try {
             GENERATOR.load(bar);
         } catch (IOException e) {
+            e.printStackTrace();
         }
         ProgressManager.pop(bar);
 

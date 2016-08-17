@@ -53,35 +53,37 @@ public class CapturePokemonGUI extends PokemonGUI {
                 try {
                     PokemonHandler.GO.getInventories().updateInventories(false);
                 } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }).start();
         } catch (Exception e) {
+            e.printStackTrace();
         }
         EncounterResponseOuterClass.EncounterResponse.Status status = this.encounterResult.getStatus();
         switch (status) {
             case ENCOUNTER_ALREADY_HAPPENED:
-                this.statusText = "Already encountered!";
+                this.statusText = I18n.translateToLocal("gui.already_encountered.name");
                 break;
             case ENCOUNTER_CLOSED:
-                this.statusText = "Encounter closed!";
+                this.statusText = I18n.translateToLocal("gui.encounter_closed.name");
                 break;
             case ENCOUNTER_ERROR:
-                this.statusText = "An unexpected error occured.";
+                this.statusText = I18n.translateToLocal("gui.unexpected_error.name");
                 break;
             case ENCOUNTER_NOT_FOUND:
-                this.statusText = "Encounter not found";
+                this.statusText = I18n.translateToLocal("gui.encounter_not_found.name");
                 break;
             case ENCOUNTER_NOT_IN_RANGE:
-                this.statusText = "Not in range!";
+                this.statusText = I18n.translateToLocal("gui.far.name");
                 break;
             case ENCOUNTER_POKEMON_FLED:
-                this.statusText = "Pokémon fled!";
+                this.statusText = I18n.translateToLocal("gui.pokemon_fled.name");
                 break;
             case POKEMON_INVENTORY_FULL:
-                this.statusText = "Your inventory is full!";
+                this.statusText = I18n.translateToLocal("gui.inventory_full.name");
                 break;
             case ENCOUNTER_SUCCESS:
-                this.statusText = "Catchable";
+                this.statusText = I18n.translateToLocal("gui.catchable.name");
         }
         this.statusText = "* " + this.statusText + " *";
         this.useableItems = new HashSet<>();
@@ -101,7 +103,7 @@ public class CapturePokemonGUI extends PokemonGUI {
             ScaledResolution resolution = new ScaledResolution(this.mc);
             this.drawRectangle(0, this.height - 18.0F, this.width, 18.0F, LLibrary.CONFIG.getPrimaryColor());
             this.drawRectangle(0, 0, this.width, 18.0F, LLibrary.CONFIG.getPrimaryColor());
-            String titleString = "Catching Pokémon - " + this.pokemonName;
+            String titleString = I18n.translateToLocalFormatted("gui.catching_pokemon.name", this.pokemonName);
             this.fontRendererObj.drawString(titleString, this.width / 2 - this.fontRendererObj.getStringWidth(titleString) / 2, 6, LLibrary.CONFIG.getTextColor(), false);
             int captureSizeX = resolution.getScaleFactor() * 80;
             int captureSizeY = resolution.getScaleFactor() * 90;
@@ -112,7 +114,7 @@ public class CapturePokemonGUI extends PokemonGUI {
             if (texture != null) {
                 texture.bind();
                 int pokemonSize = captureSizeX / 2;
-                this.drawTexturedModalRect(captureX + pokemonSize / 2, (float) (captureY + pokemonSize / 2 + Math.sin((this.mc.theWorld.getWorldTime() + partialTicks) * 0.15F) * 6.0F), 0.0F, 0.0F, 1.0F, 1.0F, pokemonSize, pokemonSize);
+                this.drawTexturedModalRect(captureX + pokemonSize / 2, (float) (captureY + pokemonSize / 2 + Math.sin((this.mc.thePlayer.ticksExisted + partialTicks) * 0.15F) * 6.0F), 0.0F, 0.0F, 1.0F, 1.0F, pokemonSize, pokemonSize);
             }
             PokemonDataOuterClass.PokemonData pokemonData = this.encounterResult.getPokemonData();
             int statsX = 7;
@@ -121,15 +123,15 @@ public class CapturePokemonGUI extends PokemonGUI {
             symbols.setDecimalSeparator('.');
             symbols.setGroupingSeparator(',');
             DecimalFormat shortDecimalFormat = new DecimalFormat("#.##", symbols);
-            this.fontRendererObj.drawString(TextFormatting.BOLD + "Statistics:", statsX + 2, statsY - 10, LLibrary.CONFIG.getTextColor());
-            this.fontRendererObj.drawString("CP: " + TextFormatting.BLUE + pokemonData.getCp(), statsX + 2, statsY + 5, LLibrary.CONFIG.getTextColor());
-            this.fontRendererObj.drawString("Stamina: " + TextFormatting.GOLD + pokemonData.getStamina() + "/" + pokemonData.getStaminaMax(), statsX + 2, statsY + 15, LLibrary.CONFIG.getTextColor());
-            this.fontRendererObj.drawString("Weight: " + TextFormatting.DARK_BLUE + shortDecimalFormat.format(pokemonData.getWeightKg()) + "kg", statsX + 2, statsY + 25, LLibrary.CONFIG.getTextColor());
+            this.fontRendererObj.drawString(TextFormatting.BOLD + I18n.translateToLocal("gui.statistics.name"), statsX + 2, statsY - 10, LLibrary.CONFIG.getTextColor());
+            this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.cp_string.name", TextFormatting.BLUE + "" + pokemonData.getCp()), statsX + 2, statsY + 5, LLibrary.CONFIG.getTextColor());
+            this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.hp_string.name", TextFormatting.GOLD + "" + pokemonData.getStamina(), pokemonData.getStaminaMax()), statsX + 2, statsY + 15, LLibrary.CONFIG.getTextColor());
+            this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.weight_string.name", TextFormatting.DARK_BLUE + "" + shortDecimalFormat.format(pokemonData.getWeightKg())), statsX + 2, statsY + 25, LLibrary.CONFIG.getTextColor());
             long despawn = this.pokemon.getExpirationTimestampMs() - PokemonHandler.GO.currentTimeMillis();
             if (despawn > 0) {
-                this.fontRendererObj.drawString("Despawns in " + String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(despawn), TimeUnit.MILLISECONDS.toMinutes(despawn) % TimeUnit.HOURS.toMinutes(1), TimeUnit.MILLISECONDS.toSeconds(despawn) % TimeUnit.MINUTES.toSeconds(1)), 3, this.height - 13, LLibrary.CONFIG.getTextColor());
+                this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.despawns.name", TimeUnit.MILLISECONDS.toHours(despawn), TimeUnit.MILLISECONDS.toMinutes(despawn) % TimeUnit.HOURS.toMinutes(1), TimeUnit.MILLISECONDS.toSeconds(despawn) % TimeUnit.MINUTES.toSeconds(1)), 3, this.height - 13, LLibrary.CONFIG.getTextColor());
             } else {
-                this.statusText = "* Expired! *";
+                this.statusText = "* " + I18n.translateToLocal("gui.expired.name") + " *";
             }
             if (this.usingRazzbery) {
                 this.mc.getTextureManager().bindTexture(PokemonSpriteHandler.get(ItemIdOuterClass.ItemId.ITEM_RAZZ_BERRY));
@@ -145,7 +147,7 @@ public class CapturePokemonGUI extends PokemonGUI {
                     this.drawRectangle(x * tileSize + tileOffsetX, y * tileSize + tileOffsetY, tileRenderSize, tileRenderSize, LLibrary.CONFIG.getSecondaryColor());
                 }
             }
-            this.fontRendererObj.drawString("Useable Items:", tileOffsetX, tileOffsetY - 10, LLibrary.CONFIG.getTextColor());
+            this.fontRendererObj.drawString(I18n.translateToLocal("gui.useable_items.name"), tileOffsetX, tileOffsetY - 10, LLibrary.CONFIG.getTextColor());
             ItemBag bag = PokemonHandler.GO.getInventories().getItemBag();
             int x = 0;
             int y = 0;
@@ -192,6 +194,7 @@ public class CapturePokemonGUI extends PokemonGUI {
             }
             GlStateManager.disableLighting();
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -246,27 +249,27 @@ public class CapturePokemonGUI extends PokemonGUI {
                                         String statusWindowMessage = null;
                                         switch (result.getStatus()) {
                                             case CATCH_ERROR:
-                                                statusWindowTitle = "Error!";
-                                                statusWindowMessage = "There was an unexpected error when catching this Pokémon! ;(";
+                                                statusWindowTitle = I18n.translateToLocal("gui.failure.name");
+                                                statusWindowMessage = I18n.translateToLocal("gui.unexpected_error.name");
                                                 close = true;
                                                 break;
                                             case CATCH_ESCAPE:
-                                                statusWindowTitle = "Problem!";
-                                                statusWindowMessage = "This Pokémon has escaped! :(";
+                                                statusWindowTitle = I18n.translateToLocal("gui.failure.name");
+                                                statusWindowMessage = I18n.translateToLocal("gui.escaped.name");
                                                 close = true;
                                                 break;
                                             case CATCH_FLEE:
-                                                statusWindowTitle = "Failure!";
-                                                statusWindowMessage = "This Pokémon has fled! :(";
+                                                statusWindowTitle = I18n.translateToLocal("gui.failure.name");
+                                                statusWindowMessage = I18n.translateToLocal("gui.fled.name");
                                                 close = true;
                                                 break;
                                             case CATCH_MISSED:
-                                                statusWindowTitle = "Failure!";
-                                                statusWindowMessage = "You missed! LOL!";
+                                                statusWindowTitle = I18n.translateToLocal("gui.failure.name");
+                                                statusWindowMessage = I18n.translateToLocal("gui.missed.name");
                                                 break;
                                             case CATCH_SUCCESS:
-                                                statusWindowTitle = "Success!";
-                                                statusWindowMessage = "You have caught this " + this.pokemonName + "!";
+                                                statusWindowTitle = I18n.translateToLocal("gui.success.name");
+                                                statusWindowMessage = I18n.translateToLocalFormatted("gui.caught_pokemon.name", this.pokemonName);
                                                 close = true;
                                         }
                                         if (statusWindowMessage != null) {
@@ -274,7 +277,7 @@ public class CapturePokemonGUI extends PokemonGUI {
                                             WindowElement<CapturePokemonGUI> window = new WindowElement<>(this, statusWindowTitle, windowWidth, 45, false);
                                             new LabelElement<>(this, statusWindowMessage, 2, 18).withParent(window);
                                             boolean finalClose = close;
-                                            new ButtonElement<>(this, "Okay", 1, 29, windowWidth - 2, 15, (button) -> {
+                                            new ButtonElement<>(this, I18n.translateToLocal("gui.okay.name"), 1, 29, windowWidth - 2, 15, (button) -> {
                                                 if (finalClose) {
                                                     this.mc.displayGuiScreen(null);
                                                 } else {
@@ -283,8 +286,10 @@ public class CapturePokemonGUI extends PokemonGUI {
                                                 return true;
                                             }).withParent(window).withColorScheme(THEME_WINDOW);
                                             ElementHandler.INSTANCE.addElement(this, window);
+                                            PokemonHandler.GO.getPlayerProfile().updateProfile();
                                         }
                                     } catch (Exception e) {
+                                        e.printStackTrace();
                                     }
                                 }).start();
                             }
@@ -302,6 +307,7 @@ public class CapturePokemonGUI extends PokemonGUI {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

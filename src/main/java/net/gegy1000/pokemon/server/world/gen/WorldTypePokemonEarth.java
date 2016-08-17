@@ -27,16 +27,21 @@ public class WorldTypePokemonEarth extends WorldTypeEarth {
 
     @Override
     public int getMapZoomX() {
-        return 200;
+        return 65;
     }
 
     @Override
     public int getMapZoomY() {
-        return 130;
+        return 1;
     }
 
     @Override
     public int getMapZoom() {
-        return 18;
+        return 20;
+    }
+
+    @Override
+    public int getMapDownloadScale() {
+        return 16;
     }
 }

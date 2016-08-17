@@ -28,7 +28,6 @@ usernamecache.json
 logs/
 crash-reports/
 *.launch
-libs/
 
 # Minecraft
 minecraft

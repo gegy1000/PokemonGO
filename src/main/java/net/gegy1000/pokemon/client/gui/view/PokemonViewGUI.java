@@ -1,32 +1,35 @@
 package net.gegy1000.pokemon.client.gui.view;
 
 import POGOProtos.Enums.TeamColorOuterClass;
-import com.pokegoapi.api.player.PlayerLevelUpRewards;
-import net.gegy1000.pokemon.PokemonGO;
+import POGOProtos.Networking.Requests.Messages.SetPlayerTeamMessageOuterClass;
+import POGOProtos.Networking.Requests.RequestTypeOuterClass;
+import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
+import POGOProtos.Networking.Responses.SetPlayerTeamResponseOuterClass;
+import com.google.protobuf.ByteString;
+import com.pokegoapi.api.player.PlayerProfile;
+import com.pokegoapi.main.AsyncServerRequest;
+import com.pokegoapi.util.AsyncHelper;
 import net.gegy1000.pokemon.client.gui.LoginGUI;
 import net.gegy1000.pokemon.client.gui.PokemonGUI;
+import net.gegy1000.pokemon.client.gui.element.TeamElement;
+import net.gegy1000.pokemon.client.gui.view.inventory.InventoryViewHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
 import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.ilexiconn.llibrary.client.gui.element.LabelElement;
-import net.ilexiconn.llibrary.client.gui.element.ListElement;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @SideOnly(Side.CLIENT)
 public class PokemonViewGUI extends PokemonGUI {
-    private static final ResourceLocation NEUTRAL_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/neutral.png");
-    private static final ResourceLocation INSTINCT_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/instinct.png");
-    private static final ResourceLocation VALOR_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/valor.png");
-    private static final ResourceLocation MYSTIC_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/mystic.png");
-
     private ButtonElement<PokemonViewGUI> character;
     private ButtonElement<PokemonViewGUI> nearby;
     private ButtonElement<PokemonViewGUI> inventory;
@@ -34,89 +37,47 @@ public class PokemonViewGUI extends PokemonGUI {
 
     private ViewMode viewMode = ViewMode.CHARACTER;
 
+    private Map<ViewMode, ViewHandler> viewHandlers = new HashMap<>();
+
+    public PokemonViewGUI() {
+        for (ViewMode mode : ViewMode.values()) {
+            try {
+                this.viewHandlers.put(mode, mode.getViewHandler().getDeclaredConstructor(PokemonViewGUI.class).newInstance(this));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     public void initElements() {
         if (PokemonHandler.GO == null) {
-            WindowElement<PokemonViewGUI> window = new WindowElement<>(this, "Error!", 172, 50, false);
-            new LabelElement<>(this, "You must be logged in to use this!", 2.0F, 18.0F).withParent(window);
-            new ButtonElement<>(this, "Login", 1.0F, 30.0F, 84, 19, (button) -> {
+            WindowElement<PokemonViewGUI> window = new WindowElement<>(this, I18n.translateToLocal("gui.failure.name"), 172, 50, false);
+            new LabelElement<>(this, I18n.translateToLocal("gui.not_logged_in.name"), 2.0F, 18.0F).withParent(window);
+            new ButtonElement<>(this, I18n.translateToLocal("gui.login.name"), 1.0F, 30.0F, 84, 19, (button) -> {
                 this.mc.displayGuiScreen(new LoginGUI());
                 return true;
             }).withParent(window).withColorScheme(THEME_WINDOW);
-            new ButtonElement<>(this, "Cancel", 87.0F, 30.0F, 84, 19, (button) -> {
+            new ButtonElement<>(this, I18n.translateToLocal("gui.cancel.name"), 87.0F, 30.0F, 84, 19, (button) -> {
                 this.mc.displayGuiScreen(null);
                 return true;
             }).withParent(window).withColorScheme(THEME_WINDOW);
             ElementHandler.INSTANCE.addElement(this, window);
         }
-        ElementHandler.INSTANCE.addElement(this, this.character = (ButtonElement<PokemonViewGUI>) new ButtonElement<>(this, "Character", this.width - 240.0F, 0.0F, 60, 18, (button) -> {
+        ElementHandler.INSTANCE.addElement(this, this.character = (ButtonElement<PokemonViewGUI>) new ButtonElement<>(this, I18n.translateToLocal("view.character.name"), this.width - 240.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.CHARACTER);
             return true;
         }).withColorScheme(THEME_TAB_ACTIVE));
-        ElementHandler.INSTANCE.addElement(this, this.nearby = new ButtonElement<>(this, "Nearby", this.width - 180.0F, 0.0F, 60, 18, (button) -> {
+        ElementHandler.INSTANCE.addElement(this, this.nearby = new ButtonElement<>(this, I18n.translateToLocal("view.nearby.name"), this.width - 180.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.NEARBY);
             return true;
         }));
-        ElementHandler.INSTANCE.addElement(this, this.inventory = new ButtonElement<>(this, "Inventory", this.width - 120.0F, 0.0F, 60, 18, (button) -> {
+        ElementHandler.INSTANCE.addElement(this, this.inventory = new ButtonElement<>(this, I18n.translateToLocal("view.inventory.name"), this.width - 120.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.INVENTORY);
             return true;
         }));
-        ElementHandler.INSTANCE.addElement(this, this.statistics = new ButtonElement<>(this, "Statistics", this.width - 60.0F, 0.0F, 60, 18, (button) -> {
+        ElementHandler.INSTANCE.addElement(this, this.statistics = new ButtonElement<>(this, I18n.translateToLocal("view.statistics.name"), this.width - 60.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.STATISTICS);
-            return true;
-        }));
-        ElementHandler.INSTANCE.addElement(this, new ButtonElement<>(this, "+", this.width - 34.0F, this.height - 34.0F, 34, 34, (button) -> {
-            WindowElement<PokemonViewGUI> window = new WindowElement<>(this, "Level Up Rewards", 120, 164, true);
-            List<String> entries = new ArrayList<>();
-            int level = 1;
-            try {
-                level = PokemonHandler.GO.getPlayerProfile().getStats().getLevel();
-            } catch (Exception e) {
-            }
-            for (int i = 1; i <= 40; i++) {
-                if (i <= level) {
-                    entries.add("Level " + i);
-                }
-            }
-            new ListElement<>(this, 0.0F, 14.0F, 120, 150, entries, (list) -> {
-                new Thread(() -> {
-                    try {
-                        PlayerLevelUpRewards rewards = PokemonHandler.GO.getPlayerProfile().acceptLevelUpRewards(list.getSelectedIndex() + 1);
-                        String statusWindowTitle = null;
-                        String statusWindowMessage = null;
-                        switch (rewards.getStatus()) {
-                            case ALREADY_ACCEPTED:
-                                statusWindowTitle = "Failure!";
-                                statusWindowMessage = "You have already accepted this reward.";
-                                break;
-                            case NOT_UNLOCKED_YET:
-                                statusWindowTitle = "Failure!";
-                                statusWindowMessage = "You have not unlocked this yet!";
-                                break;
-                            case NEW:
-                                statusWindowTitle = "Success!";
-                                statusWindowMessage = "Your rewards have been added to your inventory.";
-                                break;
-                        }
-                        if (statusWindowMessage != null) {
-                            int windowWidth = this.fontRendererObj.getStringWidth(statusWindowMessage) + 4;
-                            WindowElement<PokemonViewGUI> resultWindow = new WindowElement<>(this, statusWindowTitle, windowWidth, 45, false);
-                            new LabelElement<>(this, statusWindowMessage, 2, 18).withParent(resultWindow);
-                            new ButtonElement<>(this, "Okay", 1, 29, windowWidth - 2, 15, (btn) -> {
-                                ElementHandler.INSTANCE.removeElement(this, resultWindow);
-                                return true;
-                            }).withParent(resultWindow).withColorScheme(THEME_WINDOW);
-                            ElementHandler.INSTANCE.addElement(this, resultWindow);
-                        }
-                        PokemonHandler.GO.getInventories().updateInventories();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }).start();
-                ElementHandler.INSTANCE.removeElement(this, window);
-                return true;
-            }).withParent(window);
-            ElementHandler.INSTANCE.addElement(this, window);
             return true;
         }));
         this.setViewMode(ViewMode.CHARACTER);
@@ -126,35 +87,84 @@ public class PokemonViewGUI extends PokemonGUI {
     public void drawScreen(float mouseX, float mouseY, float partialTicks) {
         this.drawRectangle(0, this.height - 34.0F, this.width, 34.0F, LLibrary.CONFIG.getPrimaryColor());
         this.drawRectangle(0, 0, this.width, 18.0F, LLibrary.CONFIG.getPrimaryColor());
-        this.fontRendererObj.drawString("Pokémon View", 5, 5, LLibrary.CONFIG.getTextColor());
+        this.fontRendererObj.drawString(I18n.translateToLocal("gui.pokemon_view.name"), 5, 5, LLibrary.CONFIG.getTextColor());
         if (PokemonHandler.GO != null) {
             try {
-                this.fontRendererObj.drawString(PokemonHandler.username, this.width - this.fontRendererObj.getStringWidth(PokemonHandler.username) - 39, this.height - 20, LLibrary.CONFIG.getTextColor());
-                TeamColorOuterClass.TeamColor team = PokemonHandler.GO.getPlayerProfile().getPlayerData().getTeam();
-                ResourceLocation teamTexture = NEUTRAL_TEXTURE;
-                String teamName = "Neutral";
-                switch (team) {
-                    case YELLOW:
-                        teamTexture = INSTINCT_TEXTURE;
-                        teamName = "Instinct";
-                        break;
-                    case RED:
-                        teamTexture = VALOR_TEXTURE;
-                        teamName = "Valor";
-                        break;
-                    case BLUE:
-                        teamTexture = MYSTIC_TEXTURE;
-                        teamName = "Mystic";
-                        break;
-                }
-                this.mc.getTextureManager().bindTexture(teamTexture);
+                this.fontRendererObj.drawString(PokemonHandler.username, this.width - this.fontRendererObj.getStringWidth(PokemonHandler.username) - 5, this.height - 20, LLibrary.CONFIG.getTextColor());
+                Team team = new Team(PokemonHandler.GO.getPlayerProfile().getPlayerData().getTeam());
+                this.mc.getTextureManager().bindTexture(team.getTeamTexture());
                 this.drawTexturedModalRect(0, this.height - 32, 0, 0, 32, 32, 32, 32, 1.0, 1.0);
-                this.fontRendererObj.drawString(teamName, 35, this.height - 20, LLibrary.CONFIG.getTextColor());
+                this.fontRendererObj.drawString(team.getTeamName(), 35, this.height - 20, LLibrary.CONFIG.getTextColor());
 
-                this.viewMode.getViewHandler().render(mouseX, mouseY, partialTicks);
+                this.mc.getTextureManager().bindTexture(STARDUST_TEXTURE);
+                this.drawTexturedModalRect(this.width / 3, this.height - 24, 0.0F, 0.0F, 1.0F, 1.0F, 16, 16);
+                this.fontRendererObj.drawString(String.valueOf(PokemonHandler.GO.getPlayerProfile().getCurrency(PlayerProfile.Currency.STARDUST)), this.width / 3 + 16, this.height - 19, LLibrary.CONFIG.getTextColor());
+
+                this.mc.getTextureManager().bindTexture(POKECOIN_TEXTURE);
+                this.drawTexturedModalRect(this.width - this.width / 3 - 16, this.height - 24, 0.0F, 0.0F, 1.0F, 1.0F, 16, 16);
+                this.fontRendererObj.drawString(String.valueOf(PokemonHandler.GO.getPlayerProfile().getCurrency(PlayerProfile.Currency.POKECOIN)), this.width - this.width / 3 + 3, this.height - 19, LLibrary.CONFIG.getTextColor());
+
+                this.viewHandlers.get(this.viewMode).render(mouseX, mouseY, partialTicks);
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+        try {
+            if (PokemonHandler.GO.getPlayerProfile().getPlayerData().getTeam() == TeamColorOuterClass.TeamColor.NEUTRAL) {
+                if (mouseX >= 0 && mouseX <= 32 && mouseY >= this.height - 32 && mouseY <= this.height) {
+                    WindowElement<PokemonViewGUI> window = new WindowElement<>(this, I18n.translateToLocal("gui.select_team.name"), 210, 84, true);
+                    new TeamElement<>(this, 0.0F, 14.0F, 70, 70, new Team(TeamColorOuterClass.TeamColor.YELLOW), (team) -> {
+                        this.setTeam(team, window);
+                        return null;
+                    }).withParent(window);
+                    new TeamElement<>(this, 70.0F, 14.0F, 70, 70, new Team(TeamColorOuterClass.TeamColor.BLUE), (team) -> {
+                        this.setTeam(team, window);
+                        return null;
+                    }).withParent(window);
+                    new TeamElement<>(this, 140.0F, 14.0F, 70, 70, new Team(TeamColorOuterClass.TeamColor.RED), (team) -> {
+                        this.setTeam(team, window);
+                        return null;
+                    }).withParent(window);
+                    ElementHandler.INSTANCE.addElement(this, window);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setTeam(Team team, WindowElement<PokemonViewGUI> window) {
+        ElementHandler.INSTANCE.removeElement(this, window);
+        WindowElement<PokemonViewGUI> confirmWindow = new WindowElement<>(this, I18n.translateToLocal("gui.confirm.name"), 235, 47, false);
+        new LabelElement<>(this, I18n.translateToLocalFormatted("gui.team_confirm.name", team.getTeamName()), 2.0F, 16.0F).withParent(confirmWindow);
+        new ButtonElement<>(this, I18n.translateToLocal("gui.cancel.name"), 1.0F, 31.0F, 116, 15, (button) -> {
+            ElementHandler.INSTANCE.removeElement(this, confirmWindow);
+            ElementHandler.INSTANCE.addElement(this, window);
+            return true;
+        }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
+        new ButtonElement<>(this, I18n.translateToLocal("gui.okay.name"), 118.0F, 31.0F, 116, 15, (button) -> {
+            ElementHandler.INSTANCE.removeElement(this, confirmWindow);
+            new Thread(() -> {
+                try {
+                    SetPlayerTeamMessageOuterClass.SetPlayerTeamMessage message = SetPlayerTeamMessageOuterClass.SetPlayerTeamMessage.newBuilder().setTeam(team.toTeamColor()).build();
+                    AsyncServerRequest request = new AsyncServerRequest(RequestTypeOuterClass.RequestType.SET_PLAYER_TEAM, message);
+                    ByteString byteString = AsyncHelper.toBlocking(PokemonHandler.GO.getRequestHandler().sendAsyncServerRequests(request));
+                    SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse response = SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse.parseFrom(byteString);
+                    if (response.getStatus() == SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse.Status.SUCCESS) {
+                        PokemonHandler.GO.getPlayerProfile().updateProfile();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            return true;
+        }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
+        ElementHandler.INSTANCE.addElement(this, confirmWindow);
     }
 
     public void setViewMode(ViewMode viewMode) {
@@ -166,31 +176,30 @@ public class PokemonViewGUI extends PokemonGUI {
 
         this.viewMode = viewMode;
         this.viewMode.getButton(this).withColorScheme(THEME_TAB_ACTIVE);
-        this.viewMode.getViewHandler().setGUI(this);
 
         if (prevViewMode != null) {
-            prevViewMode.getViewHandler().cleanupView();
+            this.viewHandlers.get(prevViewMode).cleanupView();
         }
 
-        this.viewMode.getViewHandler().initView();
+        this.viewHandlers.get(this.viewMode).initView();
     }
 
     @Override
     public void onGuiClosed() {
         super.onGuiClosed();
-        this.viewMode.getViewHandler().cleanupView();
+        this.viewHandlers.get(this.viewMode).cleanupView();
     }
 
     public enum ViewMode {
-        CHARACTER((gui) -> gui.character, new CharacterViewHandler()),
-        NEARBY((gui) -> gui.nearby, new NearbyViewHandler()),
-        INVENTORY((gui) -> gui.inventory, new InventoryViewHandler()),
-        STATISTICS((gui) -> gui.statistics, new StatisticsViewHandler());
+        CHARACTER((gui) -> gui.character, CharacterViewHandler.class),
+        NEARBY((gui) -> gui.nearby, NearbyViewHandler.class),
+        INVENTORY((gui) -> gui.inventory, InventoryViewHandler.class),
+        STATISTICS((gui) -> gui.statistics, StatisticsViewHandler.class);
 
         private Function<PokemonViewGUI, ButtonElement<PokemonViewGUI>> button;
-        private ViewHandler viewHandler;
+        private Class<? extends ViewHandler> viewHandler;
 
-        ViewMode(Function<PokemonViewGUI, ButtonElement<PokemonViewGUI>> button, ViewHandler viewHandler) {
+        ViewMode(Function<PokemonViewGUI, ButtonElement<PokemonViewGUI>> button, Class<? extends ViewHandler> viewHandler) {
             this.button = button;
             this.viewHandler = viewHandler;
         }
@@ -199,7 +208,7 @@ public class PokemonViewGUI extends PokemonGUI {
             return this.button.apply(gui);
         }
 
-        public ViewHandler getViewHandler() {
+        public Class<? extends ViewHandler> getViewHandler() {
             return this.viewHandler;
         }
     }

@@ -1,5 +1,7 @@
 package net.gegy1000.pokemon.client.gui;
 
+import POGOProtos.Enums.TeamColorOuterClass;
+import net.gegy1000.pokemon.PokemonGO;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.ElementGUI;
 import net.ilexiconn.llibrary.client.gui.element.color.ColorScheme;
@@ -7,6 +9,8 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
@@ -16,6 +20,13 @@ public abstract class PokemonGUI extends ElementGUI {
     public static final ColorScheme THEME_TAB_ACTIVE = ColorScheme.create(() -> LLibrary.CONFIG.getAccentColor(), () -> LLibrary.CONFIG.getAccentColor());
     public static final ColorScheme THEME_WINDOW = ColorScheme.create(() -> LLibrary.CONFIG.getSecondaryColor(), () -> LLibrary.CONFIG.getAccentColor());
     public static final ColorScheme THEME_DISABLED = ColorScheme.create(() -> LLibrary.CONFIG.getSecondaryColor(), () -> LLibrary.CONFIG.getSecondaryColor());
+
+    public static final ResourceLocation NEUTRAL_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/neutral.png");
+    public static final ResourceLocation INSTINCT_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/instinct.png");
+    public static final ResourceLocation VALOR_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/valor.png");
+    public static final ResourceLocation MYSTIC_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/mystic.png");
+    public static final ResourceLocation STARDUST_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/stardust.png");
+    public static final ResourceLocation POKECOIN_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/pokecoin.png");
 
     public void drawTexturedModalRect(float x, float y, float minU, float minV, float maxU, float maxV, float width, float height) {
         GlStateManager.pushMatrix();
@@ -69,6 +80,46 @@ public abstract class PokemonGUI extends ElementGUI {
         GlStateManager.disableBlend();
         GlStateManager.enableAlpha();
         GlStateManager.enableTexture2D();
+    }
+
+    public static class Team {
+        private TeamColorOuterClass.TeamColor teamColor;
+        private ResourceLocation teamTexture;
+        private String teamName;
+
+        public Team(TeamColorOuterClass.TeamColor team) {
+            this.teamColor = team;
+            this.teamTexture = NEUTRAL_TEXTURE;
+            String teamName = "neutral";
+            switch (team) {
+                case YELLOW:
+                    this.teamTexture = INSTINCT_TEXTURE;
+                    teamName = "instinct";
+                    break;
+                case RED:
+                    this.teamTexture = VALOR_TEXTURE;
+                    teamName = "valor";
+                    break;
+                case BLUE:
+                    this.teamTexture = MYSTIC_TEXTURE;
+                    teamName = "mystic";
+                    break;
+            }
+
+            this.teamName = "team." + teamName + ".name";
+        }
+
+        public ResourceLocation getTeamTexture() {
+            return this.teamTexture;
+        }
+
+        public String getTeamName() {
+            return I18n.translateToLocal(this.teamName);
+        }
+
+        public TeamColorOuterClass.TeamColor toTeamColor() {
+            return this.teamColor;
+        }
     }
 
     @Override
