@@ -43,8 +43,8 @@ public class LoginGUI extends PokemonGUI {
         this.drawRectangle(0, this.height - 20.0F, this.width, 20.0F, LLibrary.CONFIG.getPrimarySubcolor());
         String titleString = I18n.translateToLocal("gui.login_ptc.name");
         this.fontRendererObj.drawString(titleString, this.width / 2 - this.fontRendererObj.getStringWidth(titleString) / 2, this.height / 2 - 60, LLibrary.CONFIG.getTextColor(), false);
-        if (PokemonHandler.GO != null) {
-            String warningString = I18n.translateToLocalFormatted("gui.already_logged_in.name", PokemonHandler.username);
+        if (PokemonHandler.API != null) {
+            String warningString = I18n.translateToLocalFormatted("gui.already_logged_in.name", PokemonHandler.getUsername());
             this.fontRendererObj.drawString(warningString, this.width / 2 - this.fontRendererObj.getStringWidth(warningString) / 2, this.height / 8, 0xFF0000, false);
         }
     }

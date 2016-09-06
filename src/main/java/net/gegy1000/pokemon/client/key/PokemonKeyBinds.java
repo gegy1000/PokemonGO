@@ -8,7 +8,7 @@ public class PokemonKeyBinds {
     public static final KeyBinding KEY_LOGIN = new KeyBinding("Login", Keyboard.KEY_L, "Pokémon GO");
     public static final KeyBinding KEY_POKEMON_VIEW = new KeyBinding("Pokémon View", Keyboard.KEY_I, "Pokémon GO");
 
-    public static void init() {
+    public static void onPreInit() {
         ClientRegistry.registerKeyBinding(KEY_LOGIN);
         ClientRegistry.registerKeyBinding(KEY_POKEMON_VIEW);
     }

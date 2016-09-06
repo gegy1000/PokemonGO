@@ -17,7 +17,7 @@ public class WorldTypePokemonEarth extends WorldTypeEarth {
 
     @Override
     public IChunkGenerator getChunkGenerator(World world, String generatorOptions) {
-        return new ChunkGeneratorEarth(world, world.getSeed(), this.generator);
+        return new ChunkGeneratorPokemon(world, world.getSeed(), this.generator);
     }
 
     @Override

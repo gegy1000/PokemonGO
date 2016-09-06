@@ -16,14 +16,23 @@ public class LoggingInGUI extends PokemonGUI {
     @Override
     public void updateScreen() {
         super.updateScreen();
-        if (!PokemonHandler.loggingIn && !PokemonHandler.loginFailed) {
+        if (!PokemonHandler.isLoggingIn() && !PokemonHandler.isLoginFailed()) {
             this.mc.displayGuiScreen(null);
         }
     }
 
     @Override
     public void drawScreen(float mouseX, float mouseY, float partialTicks) {
-        String displayText = PokemonHandler.loginFailed ? TextFormatting.RED + I18n.translateToLocalFormatted("gui.login_failed.name", PokemonHandler.username) : I18n.translateToLocalFormatted("gui.logging_in.name", PokemonHandler.username);
+        String displayText;
+        if (PokemonHandler.isLoginFailed()) {
+            displayText = TextFormatting.RED + "" + TextFormatting.ITALIC + I18n.translateToLocalFormatted("gui.login_failed.name", PokemonHandler.getUsername());
+        } else {
+            displayText = I18n.translateToLocalFormatted("gui.logging_in.name", PokemonHandler.getUsername());
+        }
         this.fontRendererObj.drawString(displayText, this.width / 2 - this.fontRendererObj.getStringWidth(displayText) / 2, this.height / 2, LLibrary.CONFIG.getTextColor(), false);
+        if (PokemonHandler.isLoginFailed()) {
+            String failText = TextFormatting.RED + "" + TextFormatting.BOLD + I18n.translateToLocal("gui.login_client.name");
+            this.fontRendererObj.drawString(failText, this.width / 2 - this.fontRendererObj.getStringWidth(failText) / 2, this.height / 2 + 12, LLibrary.CONFIG.getTextColor(), false);
+        }
     }
 }

@@ -1,29 +1,21 @@
 package net.gegy1000.pokemon.client.gui.view.inventory;
 
 import POGOProtos.Data.PokemonDataOuterClass;
-import POGOProtos.Networking.Requests.Messages.NicknamePokemonMessageOuterClass;
-import POGOProtos.Networking.Requests.Messages.ReleasePokemonMessageOuterClass;
-import POGOProtos.Networking.Requests.RequestTypeOuterClass;
 import POGOProtos.Networking.Responses.NicknamePokemonResponseOuterClass;
 import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
-import POGOProtos.Networking.Responses.UpgradePokemonResponseOuterClass;
-import com.google.protobuf.ByteString;
 import com.pokegoapi.api.inventory.CandyJar;
 import com.pokegoapi.api.inventory.Inventories;
 import com.pokegoapi.api.inventory.PokeBank;
+import com.pokegoapi.api.map.pokemon.EvolutionResult;
 import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.api.pokemon.Pokemon;
-import com.pokegoapi.main.AsyncServerRequest;
-import com.pokegoapi.util.AsyncHelper;
-import com.pokegoapi.util.PokeNames;
+import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
-import net.gegy1000.pokemon.PokemonGO;
 import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.DrawableElement;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
-import net.gegy1000.pokemon.client.util.PokemonSpriteHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
 import net.ilexiconn.llibrary.client.gui.element.Element;
@@ -33,7 +25,6 @@ import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 
@@ -46,7 +37,7 @@ import java.util.Locale;
 public class PokebankHandler extends InventoryHandler {
     @Override
     public void render(Inventories inventories, float mouseX, float mouseY, float partialTicks) throws Exception {
-        this.fontRenderer.drawString(I18n.translateToLocalFormatted("gui.pokebank.name", inventories.getPokebank().getPokemons().size(), PokemonHandler.GO.getPlayerProfile().getPlayerData().getMaxPokemonStorage()), 85, 23, LLibrary.CONFIG.getTextColor());
+        this.fontRenderer.drawString(I18n.translateToLocalFormatted("gui.pokebank.name", inventories.getPokebank().getPokemons().size(), PokemonHandler.API.getPlayerProfile().getPlayerData().getMaxPokemonStorage()), 85, 23, LLibrary.CONFIG.getTextColor());
     }
 
     @Override
@@ -56,17 +47,21 @@ public class PokebankHandler extends InventoryHandler {
         int tileRenderSize = slotHandler.getGrid().getRenderTileSize();
         slotHandler.draw((slot) -> {
             Pokemon pokemon = pokemons.get(slot.getIndex());
-            AdvancedDynamicTexture texture = PokemonSpriteHandler.get(pokemon.getPokemonId());
+            AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon.getPokemonId());
             if (texture != null) {
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 texture.bind();
                 this.drawTexturedModalRect(slot.getX(), slot.getY(), 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize, tileRenderSize);
             }
             this.fontRenderer.drawString(I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp()), (int) slot.getX() + 1, (int) slot.getY() + tileRenderSize - 9, LLibrary.CONFIG.getTextColor());
+            GlStateManager.disableTexture2D();
+            this.drawRectangle(slot.getX() + 1, slot.getY() + 1, tileRenderSize - 2, 4, LLibrary.CONFIG.getPrimaryColor());
+            this.drawRectangle(slot.getX() + 2, slot.getY() + 2, pokemon.getStamina() * (tileRenderSize - 4) / pokemon.getMaxStamina(), 2, 0xFF4AD33C);
             return null;
         }, (slot) -> {
             List<String> text = new ArrayList<>();
             Pokemon pokemon = pokemons.get(slot.getIndex());
-            text.add(TextFormatting.BLUE + (pokemon.getNickname() != null && pokemon.getNickname().length() > 0 ? pokemon.getNickname() : PokeNames.getDisplayName(pokemon.getPokemonId().getNumber(), Locale.ENGLISH)));
+            text.add(TextFormatting.BLUE + (pokemon.getNickname() != null && pokemon.getNickname().length() > 0 ? pokemon.getNickname() : PokemonHandler.getName(pokemon.getPokemonId())));
             text.add(TextFormatting.GREEN + I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp()));
             return text;
         }, pokemons.size());
@@ -80,7 +75,7 @@ public class PokebankHandler extends InventoryHandler {
         slotHandler.click(slot -> {
             try {
                 Pokemon pokemon = pokemons.get(slot.getIndex());
-                String displayName = PokeNames.getDisplayName(pokemon.getPokemonId().getNumber(), Locale.ENGLISH);
+                String displayName = PokemonHandler.getName(pokemon.getPokemonId());
                 int scaleFactor = resolution.getScaleFactor();
                 WindowElement<PokemonViewGUI> window = new WindowElement<>(this.getGUI(), I18n.translateToLocalFormatted("gui.pokemon_info.name", displayName), scaleFactor * 100, scaleFactor * 100, true);
                 int centerX = scaleFactor * 50;
@@ -90,10 +85,10 @@ public class PokebankHandler extends InventoryHandler {
                 int buttonHeight = scaleFactor * 6;
                 int buttonOffset = scaleFactor * 20;
                 int buttonY = scaleFactor * (100 - 33);
-                CandyJar candyJar = PokemonHandler.GO.getInventories().getCandyjar();
+                CandyJar candyJar = PokemonHandler.API.getInventories().getCandyjar();
                 boolean canEvolve = candyJar.getCandies(pokemon.getPokemonFamily()) >= pokemon.getCandiesToEvolve() && pokemon.getCandiesToEvolve() > 0;
                 boolean canPowerUpCandy = candyJar.getCandies(pokemon.getPokemonFamily()) >= pokemon.getCandyCostsForPowerup();
-                boolean canPowerUpStardust = PokemonHandler.GO.getPlayerProfile().getCurrencies().get(PlayerProfile.Currency.STARDUST) >= pokemon.getStardustCostsForPowerup();
+                boolean canPowerUpStardust = PokemonHandler.API.getPlayerProfile().getCurrencies().get(PlayerProfile.Currency.STARDUST) >= pokemon.getStardustCostsForPowerup();
                 boolean canPowerUp = canPowerUpCandy && canPowerUpStardust;
                 int textColor = LLibrary.CONFIG.getTextColor();
                 int fontHeight = (int) (this.fontRenderer.FONT_HEIGHT / 2.5F * scaleFactor);
@@ -101,11 +96,7 @@ public class PokebankHandler extends InventoryHandler {
                     try {
                         if (!input.getText().equals(nickname)) {
                             String newNickname = input.getText().equals(displayName) ? "" : input.getText();
-                            NicknamePokemonMessageOuterClass.NicknamePokemonMessage message = NicknamePokemonMessageOuterClass.NicknamePokemonMessage.newBuilder().setPokemonId(pokemon.getId()).setNickname(newNickname).build();
-                            AsyncServerRequest request = new AsyncServerRequest(RequestTypeOuterClass.RequestType.NICKNAME_POKEMON, message);
-                            ByteString data = AsyncHelper.toBlocking(PokemonHandler.GO.getRequestHandler().sendAsyncServerRequests(request));
-                            NicknamePokemonResponseOuterClass.NicknamePokemonResponse response = NicknamePokemonResponseOuterClass.NicknamePokemonResponse.parseFrom(data);
-                            if (response.getResult() == NicknamePokemonResponseOuterClass.NicknamePokemonResponse.Result.SUCCESS) {
+                            if (pokemon.renamePokemon(newNickname) == NicknamePokemonResponseOuterClass.NicknamePokemonResponse.Result.SUCCESS) {
                                 pokemon.setProto(pokemon.getProto().toBuilder().mergeFrom(PokemonDataOuterClass.PokemonData.newBuilder().setNickname(newNickname).build()).build());
                             } else {
                                 input.clearText();
@@ -124,8 +115,9 @@ public class PokebankHandler extends InventoryHandler {
                     int x = centerX - iconSize / 2;
                     int y = 10;
                     this.drawRectangle(x, y, iconSize, iconSize, LLibrary.CONFIG.getSecondaryColor());
-                    AdvancedDynamicTexture texture = PokemonSpriteHandler.get(pokemon.getPokemonId());
+                    AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon.getPokemonId());
                     if (texture != null) {
+                        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                         texture.bind();
                         this.drawTexturedModalRect(x, y, 0.0F, 0.0F, 1.0F, 1.0F, iconSize, iconSize);
                     }
@@ -141,12 +133,21 @@ public class PokebankHandler extends InventoryHandler {
                     this.fontRenderer.drawString(cp, centerX - this.fontRenderer.getStringWidth(cp) / 2, y + iconSize + 29, textColor);
                     String weight = I18n.translateToLocalFormatted("gui.weight.name", shortDecimalFormat.format(pokemon.getWeightKg()));
                     this.fontRenderer.drawString(weight, centerX - this.fontRenderer.getStringWidth(weight) / 2, y + iconSize + 39, textColor);
+                    String primaryMove = I18n.translateToLocal("move." + pokemon.getMove1().name().toLowerCase(Locale.ENGLISH) + ".name");
+                    this.fontRenderer.drawString(TextFormatting.ITALIC + primaryMove, (int) ((scaleFactor * 16.5) - this.fontRenderer.getStringWidth(primaryMove) / 2), 10, textColor, false);
+                    String primaryPower = "" + PokemonMoveMetaRegistry.getMeta(pokemon.getMove1()).getPower();
+                    this.fontRenderer.drawString(primaryPower, (int) ((scaleFactor * 16.5) - this.fontRenderer.getStringWidth(primaryPower) / 2), 20, textColor, false);
+                    String secondaryMove = I18n.translateToLocal("move." + pokemon.getMove2().name().toLowerCase(Locale.ENGLISH) + ".name");
+                    this.fontRenderer.drawString(TextFormatting.ITALIC + secondaryMove, (scaleFactor * 84) - this.fontRenderer.getStringWidth(secondaryMove) / 2, 10, textColor, false);
+                    String secondaryPower = "" + PokemonMoveMetaRegistry.getMeta(pokemon.getMove2()).getPower();
+                    this.fontRenderer.drawString(secondaryPower, (scaleFactor * 84) - this.fontRenderer.getStringWidth(secondaryPower) / 2, 20, textColor, false);
                     this.fontRenderer.drawString(String.valueOf(canPowerUpCandy ? "" : TextFormatting.RED) + pokemon.getCandyCostsForPowerup(), buttonOffset / 2 + scaleFactor * 50, buttonY + buttonHeight / 2 - fontHeight / 2, textColor);
                     this.fontRenderer.drawString(String.valueOf(canPowerUpStardust ? "" : TextFormatting.RED) + pokemon.getStardustCostsForPowerup(), (int) (buttonOffset * 1.3) + scaleFactor * 50, buttonY + buttonHeight / 2 - fontHeight / 2, textColor);
                     if (pokemon.getCandiesToEvolve() != 0) {
                         this.fontRenderer.drawString(String.valueOf(canEvolve ? "" : TextFormatting.RED) + pokemon.getCandiesToEvolve(), buttonOffset + scaleFactor * 50, buttonY + resolution.getScaleFactor() * 8 + buttonHeight / 2 - fontHeight / 2, textColor);
                     }
-                    this.getGUI().mc.getTextureManager().bindTexture(PokemonSpriteHandler.get(pokemon.getPokemonFamily()));
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                    this.getGUI().mc.getTextureManager().bindTexture(PokemonHandler.getTexture(pokemon.getPokemonFamily()));
                     int costIconSize = (int) (scaleFactor * 5.5);
                     if (pokemon.getCandiesToEvolve() != 0) {
                         this.drawTexturedModalRect(buttonOffset + scaleFactor * 43, buttonY + resolution.getScaleFactor() * 8 + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
@@ -159,12 +160,7 @@ public class PokebankHandler extends InventoryHandler {
                 new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.release.name"), 1.0F, scaleFactor * 100 - 21, scaleFactor * 100 - 2, 20, (button) -> {
                     new Thread(() -> {
                         try {
-                            ReleasePokemonMessageOuterClass.ReleasePokemonMessage message = ReleasePokemonMessageOuterClass.ReleasePokemonMessage.newBuilder().setPokemonId(pokemon.getId()).build();
-                            AsyncServerRequest request = new AsyncServerRequest(RequestTypeOuterClass.RequestType.RELEASE_POKEMON, message);
-                            ByteString byteString = AsyncHelper.toBlocking(PokemonHandler.GO.getRequestHandler().sendAsyncServerRequests(request));
-                            ReleasePokemonResponseOuterClass.ReleasePokemonResponse response = ReleasePokemonResponseOuterClass.ReleasePokemonResponse.parseFrom(byteString);
-                            if (response.getResult() == ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result.SUCCESS) {
-                                pokebank.removePokemon(pokemon);
+                            if (pokemon.transferPokemon() == ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result.SUCCESS) {
                                 ElementHandler.INSTANCE.removeElement(this.getGUI(), window);
                             }
                         } catch (Exception e) {
@@ -190,7 +186,11 @@ public class PokebankHandler extends InventoryHandler {
                     if (canEvolve) {
                         new Thread(() -> {
                             try {
-                                pokemon.evolve();
+                                EvolutionResult result = pokemon.evolve();
+                                if (result.isSuccessful()) {
+                                    PokemonHandler.API.getPlayerProfile().updateProfile();
+                                }
+                                ElementHandler.INSTANCE.removeElement(this.getGUI(), window);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }

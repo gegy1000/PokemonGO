@@ -1,6 +1,6 @@
 package net.gegy1000.pokemon;
 
-import net.gegy1000.pokemon.client.util.PokemonSpriteHandler;
+import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.gegy1000.pokemon.server.proxy.ServerProxy;
 import net.gegy1000.pokemon.server.world.gen.PokemonEarthGenerator;
 import net.gegy1000.pokemon.server.world.gen.WorldTypePokemonEarth;
@@ -44,7 +44,7 @@ public class PokemonGO {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        PokemonSpriteHandler.load();
+        PokemonHandler.onPreInit();
         proxy.postInit();
     }
 }

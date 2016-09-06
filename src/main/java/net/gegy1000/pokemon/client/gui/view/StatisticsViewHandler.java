@@ -52,7 +52,7 @@ public class StatisticsViewHandler extends ViewHandler {
             symbols.setDecimalSeparator('.');
             symbols.setGroupingSeparator(',');
             DecimalFormat shortDecimalFormat = new DecimalFormat("#.##", symbols);
-            Stats statistics = PokemonHandler.GO.getPlayerProfile().getStats();
+            Stats statistics = PokemonHandler.API.getPlayerProfile().getStats();
             this.statistics.add(I18n.translateToLocal("stat.level.name") + " " + TextFormatting.DARK_GREEN + statistics.getLevel());
             this.statistics.add(I18n.translateToLocal("stat.experience.name") + " " + TextFormatting.DARK_GREEN + statistics.getExperience() + "XP (" + (int) ((statistics.getExperience() - statistics.getPrevLevelXp()) / (double) statistics.getNextLevelXp() * 100.0) + "%)");
             this.statistics.add(I18n.translateToLocal("stat.pokeballs_thrown.name") + " " + TextFormatting.BLUE + statistics.getPokeballsThrown());

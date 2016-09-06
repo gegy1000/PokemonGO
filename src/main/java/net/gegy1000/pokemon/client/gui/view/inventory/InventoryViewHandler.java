@@ -28,7 +28,7 @@ public class InventoryViewHandler extends ViewHandler {
     @Override
     public void render(float mouseX, float mouseY, float partialTicks) {
         try {
-            Inventories inventories = PokemonHandler.GO.getInventories();
+            Inventories inventories = PokemonHandler.API.getInventories();
             this.selectedInventoryType.getHandler().render(inventories, mouseX, mouseY, partialTicks);
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,7 +49,7 @@ public class InventoryViewHandler extends ViewHandler {
         if (this.inventoriesList == null || this.inventoryGrid == null) {
             new Thread(() -> {
                 try {
-                    PokemonHandler.GO.getInventories().updateInventories();
+                    PokemonHandler.API.getInventories().updateInventories(true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -74,7 +74,7 @@ public class InventoryViewHandler extends ViewHandler {
                 int tilesY = 4;
                 ElementHandler.INSTANCE.addElement(this.getGUI(), this.inventoryGrid = new InventoryGridElement<>(this.getGUI(), (this.getGUI().width - 80 - tileSize * 8) / 2 + 80, 35, tilesX * tileSize, tilesY * tileSize, tilesX, tileSize, (slotHandler) -> {
                     try {
-                        Inventories inventories = PokemonHandler.GO.getInventories();
+                        Inventories inventories = PokemonHandler.API.getInventories();
                         this.selectedInventoryType.getHandler().renderSlots(inventories, slotHandler);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -82,7 +82,7 @@ public class InventoryViewHandler extends ViewHandler {
                     return null;
                 }, slotHandler -> {
                     try {
-                        Inventories inventories = PokemonHandler.GO.getInventories();
+                        Inventories inventories = PokemonHandler.API.getInventories();
                         this.selectedInventoryType.getHandler().click(inventories, slotHandler);
                     } catch (Exception e) {
                         e.printStackTrace();

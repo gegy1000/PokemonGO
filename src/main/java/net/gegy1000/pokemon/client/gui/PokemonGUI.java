@@ -27,10 +27,10 @@ public abstract class PokemonGUI extends ElementGUI {
     public static final ResourceLocation MYSTIC_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/mystic.png");
     public static final ResourceLocation STARDUST_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/stardust.png");
     public static final ResourceLocation POKECOIN_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/pokecoin.png");
+    public static final ResourceLocation EGG_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/egg.png");
 
     public void drawTexturedModalRect(float x, float y, float minU, float minV, float maxU, float maxV, float width, float height) {
         GlStateManager.pushMatrix();
-        GlStateManager.color(1.0F, 1.0F, 1.0F);
         Tessellator tessellator = Tessellator.getInstance();
         VertexBuffer buffer = tessellator.getBuffer();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
@@ -44,7 +44,6 @@ public abstract class PokemonGUI extends ElementGUI {
 
     public void drawTexturedModalRect(float x, float y, int textureX, int textureY, int width, int height, int texWidth, int texHeight, double scaleX, double scaleY) {
         GlStateManager.pushMatrix();
-        GlStateManager.color(1.0F, 1.0F, 1.0F);
         GlStateManager.scale(scaleX, scaleY, 0.0);
         x /= scaleX;
         y /= scaleY;
