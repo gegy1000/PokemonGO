@@ -1,17 +1,15 @@
 package net.gegy1000.pokemon.client.gui;
 
 import POGOProtos.Data.PokemonDataOuterClass;
-import POGOProtos.Networking.Responses.StartGymBattleResponseOuterClass;
-import com.pokegoapi.api.gym.Battle;
 import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.inventory.PokeBank;
 import com.pokegoapi.api.pokemon.Pokemon;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextFormatting;
@@ -19,16 +17,13 @@ import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
 public class GymGUI extends PokemonGUI {
-    public static final long[] LEVEL_POINTS = new long[] {2000, 4000, 8000, 12000, 16000, 20000, 30000, 40000, 50000};
+    public static final long[] LEVEL_POINTS = new long[] { 2000, 4000, 8000, 12000, 16000, 20000, 30000, 40000, 50000 };
 
     private Gym gym;
     private String name;
@@ -50,7 +45,7 @@ public class GymGUI extends PokemonGUI {
     public void initElements() {
         ScaledResolution resolution = new ScaledResolution(this.mc);
 
-        ElementHandler.INSTANCE.addElement(this, this.attackButton = new ButtonElement<>(this, I18n.translateToLocal("gui.attack.name"), this.width / 2.0F - (resolution.getScaleFactor() * 32), this.height / 2.0F - 15, resolution.getScaleFactor() * 64, 30, (button) -> {
+        this.addElement(this.attackButton = new ButtonElement<>(this, I18n.translateToLocal("gui.attack.name"), this.width / 2.0F - (resolution.getScaleFactor() * 32), this.height / 2.0F - 15, resolution.getScaleFactor() * 64, 30, (button) -> {
             try {
                 if (this.gym.isAttackable() && !this.gym.getIsInBattle()) {
                     PokeBank pokebank = PokemonHandler.API.getInventories().getPokebank();
@@ -75,7 +70,7 @@ public class GymGUI extends PokemonGUI {
             return false;
         }));
 
-        ElementHandler.INSTANCE.addElement(this, new InventoryGridElement<>(this, this.width / 8.0F - (resolution.getScaleFactor() * 12), 60.0F, resolution.getScaleFactor() * 50, resolution.getScaleFactor() * 72, 2, resolution.getScaleFactor() * 24, (slotRenderer) -> {
+        this.addElement(new InventoryGridElement<>(this, this.width / 8.0F - (resolution.getScaleFactor() * 12), 60.0F, resolution.getScaleFactor() * 50, resolution.getScaleFactor() * 72, 2, resolution.getScaleFactor() * 24, (slotRenderer) -> {
             try {
                 List<PokemonDataOuterClass.PokemonData> defendingPokemon = this.gym.getDefendingPokemon();
                 int tileRenderSize = slotRenderer.getGrid().getRenderTileSize();
@@ -83,7 +78,7 @@ public class GymGUI extends PokemonGUI {
                     try {
                         if (slot.getIndex() < defendingPokemon.size()) {
                             PokemonDataOuterClass.PokemonData pokemon = defendingPokemon.get(slot.getIndex());
-                            AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon.getPokemonId());
+                            AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon.getPokemonId());
                             if (texture != null) {
                                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                                 texture.bind();
@@ -101,7 +96,7 @@ public class GymGUI extends PokemonGUI {
                         if (slot.getIndex() < defendingPokemon.size()) {
                             List<String> text = new ArrayList<>();
                             PokemonDataOuterClass.PokemonData pokemon = defendingPokemon.get(slot.getIndex());
-                            text.add(TextFormatting.BLUE + PokemonHandler.getName(pokemon.getPokemonId()));
+                            text.add(TextFormatting.BLUE + PokemonGUIHandler.getName(pokemon.getPokemonId()));
                             text.add(TextFormatting.GREEN + I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp()));
                             return text;
                         }
@@ -116,7 +111,7 @@ public class GymGUI extends PokemonGUI {
             return null;
         }));
 
-        ElementHandler.INSTANCE.addElement(this, new InventoryGridElement<>(this, this.width - this.width / 8.0F - (resolution.getScaleFactor() * 35), 60.0F, resolution.getScaleFactor() * 50, resolution.getScaleFactor() * 72, 2, resolution.getScaleFactor() * 24, (slotRenderer) -> {
+        this.addElement(new InventoryGridElement<>(this, this.width - this.width / 8.0F - (resolution.getScaleFactor() * 35), 60.0F, resolution.getScaleFactor() * 50, resolution.getScaleFactor() * 72, 2, resolution.getScaleFactor() * 24, (slotRenderer) -> {
             try {
                 PokeBank pokebank = PokemonHandler.API.getInventories().getPokebank();
                 List<Pokemon> pokemons = new ArrayList<>(pokebank.getPokemons());
@@ -126,7 +121,7 @@ public class GymGUI extends PokemonGUI {
                     try {
                         if (slot.getIndex() < pokemons.size()) {
                             Pokemon pokemon = pokemons.get(slot.getIndex());
-                            AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon.getPokemonId());
+                            AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon.getPokemonId());
                             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                             if (texture != null) {
                                 texture.bind();
@@ -147,7 +142,7 @@ public class GymGUI extends PokemonGUI {
                         if (slot.getIndex() < pokemons.size()) {
                             List<String> text = new ArrayList<>();
                             Pokemon pokemon = pokemons.get(slot.getIndex());
-                            text.add(TextFormatting.BLUE + PokemonHandler.getName(pokemon.getPokemonId()));
+                            text.add(TextFormatting.BLUE + PokemonGUIHandler.getName(pokemon.getPokemonId()));
                             text.add(TextFormatting.GREEN + I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp()));
                             return text;
                         }
@@ -219,7 +214,7 @@ public class GymGUI extends PokemonGUI {
                 String me = I18n.translateToLocal("gui.me.name");
                 this.fontRendererObj.drawString(me, this.width - this.width / 8 - this.fontRendererObj.getStringWidth(me) - 15, 40, textColor);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

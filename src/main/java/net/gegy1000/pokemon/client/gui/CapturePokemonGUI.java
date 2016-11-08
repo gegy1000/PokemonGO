@@ -11,10 +11,12 @@ import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.encounter.EncounterResult;
 import com.pokegoapi.api.settings.CatchOptions;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonMapHandler;
+import net.gegy1000.pokemon.client.util.PokemonUtils;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.ilexiconn.llibrary.client.gui.element.LabelElement;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.gui.ScaledResolution;
@@ -32,7 +34,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @SideOnly(Side.CLIENT)
 public class CapturePokemonGUI extends PokemonGUI {
@@ -45,7 +46,7 @@ public class CapturePokemonGUI extends PokemonGUI {
 
     public CapturePokemonGUI(CatchablePokemon pokemon) {
         this.pokemon = pokemon;
-        this.pokemonName = PokemonHandler.getName(pokemon.getPokemonId());
+        this.pokemonName = PokemonGUIHandler.getName(pokemon.getPokemonId());
         try {
             this.encounterResult = this.pokemon.encounterPokemon();
             new Thread(() -> {
@@ -109,7 +110,7 @@ public class CapturePokemonGUI extends PokemonGUI {
             int captureX = this.width / 2 - (captureSizeX / 2);
             int captureY = this.height / 2 - (captureSizeY / 2);
             this.drawRectangle(captureX, captureY, captureSizeX, captureSizeY, LLibrary.CONFIG.getSecondaryColor());
-            AdvancedDynamicTexture texture = PokemonHandler.getTexture(this.pokemon.getPokemonId());
+            AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(this.pokemon.getPokemonId());
             if (texture != null) {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 texture.bind();
@@ -127,15 +128,10 @@ public class CapturePokemonGUI extends PokemonGUI {
             this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.cp_string.name", TextFormatting.BLUE + "" + pokemonData.getCp()), statsX + 2, statsY + 5, LLibrary.CONFIG.getTextColor());
             this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.hp_string.name", TextFormatting.GOLD + "" + pokemonData.getStamina(), pokemonData.getStaminaMax()), statsX + 2, statsY + 15, LLibrary.CONFIG.getTextColor());
             this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.weight_string.name", TextFormatting.DARK_BLUE + "" + shortDecimalFormat.format(pokemonData.getWeightKg())), statsX + 2, statsY + 25, LLibrary.CONFIG.getTextColor());
-            long despawn = this.pokemon.getExpirationTimestampMs() - PokemonHandler.API.currentTimeMillis();
-            if (despawn > 0) {
-                this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.despawns.name", TimeUnit.MILLISECONDS.toHours(despawn), TimeUnit.MILLISECONDS.toMinutes(despawn) % TimeUnit.HOURS.toMinutes(1), TimeUnit.MILLISECONDS.toSeconds(despawn) % TimeUnit.MINUTES.toSeconds(1)), 3, this.height - 13, LLibrary.CONFIG.getTextColor());
-            } else {
-                this.statusText = "* " + I18n.translateToLocal("gui.expired.name") + " *";
-            }
+            this.fontRendererObj.drawString(I18n.translateToLocalFormatted("gui.iv.name", TextFormatting.GREEN + "" + (int) PokemonUtils.calculateIV(pokemonData) + "%"), statsX + 2, statsY + 35, LLibrary.CONFIG.getTextColor());
             if (this.usingRazzbery) {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                this.mc.getTextureManager().bindTexture(PokemonHandler.getTexture(ItemIdOuterClass.ItemId.ITEM_RAZZ_BERRY));
+                this.mc.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(ItemIdOuterClass.ItemId.ITEM_RAZZ_BERRY));
                 this.drawTexturedModalRect(0.0F, this.height - 50.0F, 0.0F, 0.0F, 1.0F, 1.0F, 32.0F, 32.0F);
             }
             this.fontRendererObj.drawString(this.statusText, this.width / 2 - this.fontRendererObj.getStringWidth(this.statusText) / 2, this.height - 12, LLibrary.CONFIG.getTextColor(), false);
@@ -153,11 +149,11 @@ public class CapturePokemonGUI extends PokemonGUI {
             int x = 0;
             int y = 0;
             for (Item item : bag.getItems()) {
-                if (this.useableItems.contains(item.getItemId())) {
+                if (item.getCount() > 0 && this.useableItems.contains(item.getItemId())) {
                     int renderX = x * tileSize + tileOffsetX;
                     int renderY = y * tileSize + tileOffsetY;
                     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                    this.mc.getTextureManager().bindTexture(PokemonHandler.getTexture(item.getItemId()));
+                    this.mc.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(item.getItemId()));
                     this.drawTexturedModalRect(renderX + 3, renderY + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
                     this.fontRendererObj.drawString("x" + item.getCount(), renderX + 2, renderY + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
                     x++;
@@ -173,7 +169,7 @@ public class CapturePokemonGUI extends PokemonGUI {
             x = 0;
             y = 0;
             for (Item item : bag.getItems()) {
-                if (this.useableItems.contains(item.getItemId())) {
+                if (item.getCount() > 0 && this.useableItems.contains(item.getItemId())) {
                     float renderX = x * tileSize + tileOffsetX;
                     float renderY = y * tileSize + tileOffsetY;
                     if (mouseX >= renderX && mouseX <= renderX + tileRenderSize && mouseY >= renderY && mouseY <= renderY + tileRenderSize) {
@@ -214,7 +210,7 @@ public class CapturePokemonGUI extends PokemonGUI {
             int y = 0;
             for (Item item : bag.getItems()) {
                 ItemIdOuterClass.ItemId itemId = item.getItemId();
-                if (this.useableItems.contains(itemId)) {
+                if (item.getCount() > 0 && this.useableItems.contains(itemId)) {
                     float renderX = x * tileSize + tileOffsetX;
                     float renderY = y * tileSize + tileOffsetY;
                     if (mouseX >= renderX && mouseX <= renderX + tileRenderSize && mouseY >= renderY && mouseY <= renderY + tileRenderSize) {
@@ -236,7 +232,7 @@ public class CapturePokemonGUI extends PokemonGUI {
                                 new Thread(() -> {
                                     try {
                                         CatchOptions catchOptions = new CatchOptions(PokemonHandler.API);
-                                        catchOptions.useRazzberries(this.usingRazzbery);
+                                        catchOptions.maxRazzberries(this.usingRazzbery ? 1 : 0);
                                         catchOptions.maxPokeballs(1);
                                         catchOptions.usePokeball(finalPokeball);
                                         CatchResult result = this.pokemon.catchPokemon(catchOptions);
@@ -285,13 +281,13 @@ public class CapturePokemonGUI extends PokemonGUI {
                                             new ButtonElement<>(this, I18n.translateToLocal("gui.okay.name"), 1, 29, windowWidth - 2, 15, (button) -> {
                                                 if (finalClose) {
                                                     this.mc.displayGuiScreen(null);
-                                                    PokemonHandler.removePokemon(this.pokemon);
+                                                    PokemonMapHandler.removePokemon(this.pokemon);
                                                 } else {
-                                                    ElementHandler.INSTANCE.removeElement(this, window);
+                                                    this.removeElement(window);
                                                 }
                                                 return true;
                                             }).withParent(window).withColorScheme(THEME_WINDOW);
-                                            ElementHandler.INSTANCE.addElement(this, window);
+                                            this.addElement(window);
                                             PokemonHandler.API.getPlayerProfile().updateProfile();
                                         }
                                     } catch (Exception e) {

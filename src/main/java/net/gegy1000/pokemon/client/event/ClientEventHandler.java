@@ -17,6 +17,7 @@ import net.gegy1000.pokemon.client.key.PokemonKeyBinds;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
 import net.gegy1000.pokemon.client.renderer.pokemon.CatchableRenderedPokemon;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonMapHandler;
 import net.gegy1000.pokemon.server.world.gen.WorldTypePokemonEarth;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -63,17 +64,23 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRightClickEmpty(PlayerInteractEvent.RightClickEmpty event) {
-        this.interactMapObjects();
+        if (event.getEntityPlayer() == MC.thePlayer) {
+            this.interactMapObjects();
+        }
     }
 
     @SubscribeEvent
     public void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
-        this.interactMapObjects();
+        if (event.getEntityPlayer() == MC.thePlayer) {
+            this.interactMapObjects();
+        }
     }
 
     @SubscribeEvent
     public void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        this.interactMapObjects();
+        if (event.getEntityPlayer() == MC.thePlayer) {
+            this.interactMapObjects();
+        }
     }
 
     private void interactMapObjects() {
@@ -81,7 +88,7 @@ public class ClientEventHandler {
             try {
                 EntityPlayerSP player = MC.thePlayer;
                 Map<CatchablePokemon, AxisAlignedBB> pokemonBounds = new HashMap<>();
-                for (CatchablePokemon pokemon : PokemonHandler.getCatchablePokemon()) {
+                for (CatchablePokemon pokemon : PokemonMapHandler.getCatchablePokemon()) {
                     double x = PokemonGO.GENERATOR.fromLong(pokemon.getLongitude());
                     double z = PokemonGO.GENERATOR.fromLat(pokemon.getLatitude());
                     int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
@@ -94,7 +101,7 @@ public class ClientEventHandler {
                 }
 
                 Map<Pokestop, AxisAlignedBB> pokestopBounds = new HashMap<>();
-                for (Pokestop pokestop : PokemonHandler.getPokestops()) {
+                for (Pokestop pokestop : PokemonMapHandler.getPokestops()) {
                     double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
                     double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
                     int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
@@ -107,7 +114,7 @@ public class ClientEventHandler {
                 }
 
                 Map<Gym, AxisAlignedBB> gymBounds = new HashMap<>();
-                for (Gym gym : PokemonHandler.getGyms()) {
+                for (Gym gym : PokemonMapHandler.getGyms()) {
                     double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
                     double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
                     int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
@@ -153,9 +160,9 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onGuiRender(RenderGameOverlayEvent event) {
         if (event.getType() == RenderGameOverlayEvent.ElementType.TEXT) {
+            EntityPlayerSP player = MC.thePlayer;
             if (PokemonHandler.API != null && MC.theWorld.getWorldType() instanceof WorldTypePokemonEarth) {
                 try {
-                    EntityPlayerSP player = MC.thePlayer;
                     double move = PokemonHandler.getDistance(Earth.GENERATOR.toLat(player.posZ), Earth.GENERATOR.toLong(player.posX), Earth.GENERATOR.toLat(player.lastTickPosZ), Earth.GENERATOR.toLong(player.lastTickPosX));
                     int speed = (int) ((move * 60.0) * 50.0 / 1000.0);
                     TextFormatting textFormatting = TextFormatting.GREEN;
@@ -209,7 +216,7 @@ public class ClientEventHandler {
             GlStateManager.enableBlend();
             GlStateManager.enableFog();
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-            for (Gym gym : PokemonHandler.getGyms()) {
+            for (Gym gym : PokemonMapHandler.getGyms()) {
                 if (gym != null) {
                     double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
                     double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
@@ -219,7 +226,7 @@ public class ClientEventHandler {
             }
             GlStateManager.enableTexture2D();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            for (Pokestop pokestop : PokemonHandler.getPokestops()) {
+            for (Pokestop pokestop : PokemonMapHandler.getPokestops()) {
                 if (pokestop != null) {
                     double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
                     double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
@@ -227,7 +234,7 @@ public class ClientEventHandler {
                     RenderHandler.POKESTOP_RENDERER.render(pokestop, x - viewX, y - viewY, z - viewZ, partialTicks);
                 }
             }
-            for (CatchableRenderedPokemon pokemon : PokemonHandler.getCatchableRenderedPokemon()) {
+            for (CatchableRenderedPokemon pokemon : PokemonMapHandler.getCatchableRenderedPokemon()) {
                 CatchablePokemon catchablePokemon = pokemon.getPokemon();
                 double x = PokemonGO.GENERATOR.fromLong(catchablePokemon.getLongitude());
                 double z = PokemonGO.GENERATOR.fromLat(catchablePokemon.getLatitude());

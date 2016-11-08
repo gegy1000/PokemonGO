@@ -3,9 +3,9 @@ package net.gegy1000.pokemon.client.gui.element;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.ClientProxy;
 import net.ilexiconn.llibrary.client.gui.element.Element;
+import net.ilexiconn.llibrary.client.gui.element.IElementGUI;
 import net.ilexiconn.llibrary.client.gui.element.ScrollbarElement;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraftforge.fml.client.config.GuiUtils;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @SideOnly(Side.CLIENT)
-public class InventoryGridElement<T extends GuiScreen> extends Element<T> {
+public class InventoryGridElement<T extends IElementGUI> extends Element<T> {
     private ScrollbarElement<T> scrollbar;
     private final Function<SlotHandler, Void> renderFunction;
     private final Function<SlotHandler, Boolean> clickFunction;
@@ -87,7 +87,7 @@ public class InventoryGridElement<T extends GuiScreen> extends Element<T> {
         public void draw(Function<Slot, Void> slot, Function<Slot, List<String>> hovering, int amount) {
             GL11.glEnable(GL11.GL_SCISSOR_TEST);
             float scaleFactor = new ScaledResolution(ClientProxy.MINECRAFT).getScaleFactor();
-            GL11.glScissor((int) (this.grid.getPosX() * scaleFactor), (int) ((this.grid.getGUI().height - (this.grid.getPosY() + this.grid.getHeight())) * scaleFactor), (int) (this.grid.getWidth() * scaleFactor), (int) (this.grid.getHeight() * scaleFactor));
+            GL11.glScissor((int) (this.grid.getPosX() * scaleFactor), (int) ((this.grid.gui.getHeight() - (this.grid.getPosY() + this.grid.getHeight())) * scaleFactor), (int) (this.grid.getWidth() * scaleFactor), (int) (this.grid.getHeight() * scaleFactor));
             this.grid.size = amount;
             int x = 0;
             int y = 0;
@@ -112,7 +112,7 @@ public class InventoryGridElement<T extends GuiScreen> extends Element<T> {
                     float renderX = x * tileSize;
                     float renderY = y * tileSize;
                     if (this.mouseX >= renderX && this.mouseX <= renderX + renderTileSize && this.mouseY >= renderY && this.mouseY <= renderY + renderTileSize) {
-                        GuiUtils.drawHoveringText(hovering.apply(new Slot(renderX, renderY, i)), (int) this.mouseX, (int) this.mouseY, (int) (this.grid.getGUI().width - this.grid.getPosX()), (int) (this.grid.getGUI().height + scrollOffset), -1, Minecraft.getMinecraft().fontRendererObj);
+                        GuiUtils.drawHoveringText(hovering.apply(new Slot(renderX, renderY, i)), (int) this.mouseX, (int) this.mouseY, (int) (this.grid.gui.getWidth() - this.grid.getPosX()), (int) (this.grid.gui.getHeight() + scrollOffset), -1, Minecraft.getMinecraft().fontRendererObj);
                         break;
                     }
                     if (++x >= this.grid.tilesX) {

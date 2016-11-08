@@ -4,7 +4,6 @@ import POGOProtos.Data.PokemonDataOuterClass;
 import POGOProtos.Inventory.Item.ItemAwardOuterClass;
 import POGOProtos.Inventory.Item.ItemDataOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
-import POGOProtos.Map.Fort.FortModifierOuterClass;
 import POGOProtos.Networking.Responses.FortSearchResponseOuterClass;
 import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.api.map.fort.FortDetails;
@@ -12,11 +11,11 @@ import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.fort.PokestopLootResult;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
 import net.ilexiconn.llibrary.client.gui.element.Element;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.ilexiconn.llibrary.client.gui.element.LabelElement;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.gui.ScaledResolution;
@@ -31,8 +30,6 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,7 +65,7 @@ public class PokestopGUI extends PokemonGUI {
     @Override
     public void initElements() {
         ScaledResolution resolution = new ScaledResolution(this.mc);
-        ElementHandler.INSTANCE.addElement(this, this.lootButton = new ButtonElement<>(this, I18n.translateToLocal("gui.loot.name"), 0, this.height - 36, this.width, 18, (button) -> {
+        this.addElement(this.lootButton = new ButtonElement<>(this, I18n.translateToLocal("gui.loot.name"), 0, this.height - 36, this.width, 18, (button) -> {
             if (this.pokestop.canLoot()) {
                 new Thread(() -> {
                     try {
@@ -76,7 +73,7 @@ public class PokestopGUI extends PokemonGUI {
                         if (this.result.getResult() == FortSearchResponseOuterClass.FortSearchResponse.Result.INVENTORY_FULL) {
                             WindowElement<PokestopGUI> window = new WindowElement<>(this, I18n.translateToLocal("gui.failure.name"), 115, 26);
                             new LabelElement<>(this, I18n.translateToLocal("gui.inventory_full.name"), 2, 16).withParent(window);
-                            ElementHandler.INSTANCE.addElement(this, window);
+                            this.addElement(window);
                             PokemonHandler.API.getPlayerProfile().updateProfile();
                         }
                         this.loot = new ArrayList<>();
@@ -109,64 +106,7 @@ public class PokestopGUI extends PokemonGUI {
         int tileSize = resolution.getScaleFactor() * 21;
         int tileOffsetX = 25 + (this.width - 80 - tileSize * 8) / 2;
         int tileOffsetY = this.height - tileSize * 8 / 2 - 10;
-        ElementHandler.INSTANCE.addElement(this, new InventoryGridElement<>(this, tileOffsetX, tileOffsetY, tileSize * 2, tileSize * 3, 2, tileSize, (slotHandler) -> {
-//            if (this.result != null) {
-//                if (!this.result.wasSuccessful()) {
-//                    this.result = null;
-//                } else {
-//                    String earnedXP = I18n.translateToLocalFormatted("gui.earned_xp.name", String.valueOf(this.result.getExperience()));
-//                    this.fontRendererObj.drawString(earnedXP, this.width / 2 - this.fontRendererObj.getStringWidth(earnedXP) / 2, iconY - 15, LLibrary.CONFIG.getTextColor());
-//                    int x = 0;
-//                    int y = 0;
-//                    Map<ItemIdOuterClass.ItemId, Integer> awardedItems = new HashMap<>();
-//                    for (ItemAwardOuterClass.ItemAward item : this.result.getItemsAwarded()) {
-//                        Integer count = awardedItems.get(item.getItemId());
-//                        if (count == null) {
-//                            count = 0;
-//                        }
-//                        count += item.getItemCount();
-//                        awardedItems.put(item.getItemId(), count);
-//                    }
-//                    for (Map.Entry<ItemIdOuterClass.ItemId, Integer> entry : awardedItems.entrySet()) {
-//                        int renderX = x * tileSize + tileOffsetX;
-//                        int renderY = y * tileSize + tileOffsetY;
-//                        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-//                        this.mc.getTextureManager().bindTexture(PokemonHandler.getTexture(entry.getKey()));
-//                        this.drawTexturedModalRect(renderX + 3, renderY + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
-//                        this.fontRendererObj.drawString("x" + entry.getValue(), renderX + 2, renderY + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
-//                        x++;
-//                        if (x >= 2) {
-//                            x = 0;
-//                            y++;
-//                        }
-//                        if (y > 3) {
-//                            break;
-//                        }
-//                    }
-//                    x = 0;
-//                    y = 0;
-//                    for (Map.Entry<ItemIdOuterClass.ItemId, Integer> entry : awardedItems.entrySet()) {
-//                        float renderX = x * tileSize + tileOffsetX;
-//                        float renderY = y * tileSize + tileOffsetY;
-//                        if (mouseX >= renderX && mouseX <= renderX + tileRenderSize && mouseY >= renderY && mouseY <= renderY + tileRenderSize) {
-//                            List<String> text = new LinkedList<>();
-//                            ItemIdOuterClass.ItemId itemId = entry.getKey();
-//                            text.add(TextFormatting.BLUE + I18n.translateToLocal("pokeitem." + itemId.name().replaceAll("ITEM_", "").toLowerCase(Locale.ENGLISH) + ".name"));
-//                            text.add(TextFormatting.GREEN + "x" + entry.getValue());
-//                            this.drawHoveringText(text, (int) mouseX, (int) mouseY);
-//                        }
-//                        x++;
-//                        if (x >= 2) {
-//                            x = 0;
-//                            y++;
-//                        }
-//                        if (y > 3) {
-//                            break;
-//                        }
-//                    }
-//                    GlStateManager.disableLighting();
-//                }
-//            }
+        this.addElement(new InventoryGridElement<>(this, tileOffsetX, tileOffsetY, tileSize * 2, tileSize * 3, 2, tileSize, (slotHandler) -> {
             int tileRenderSize = slotHandler.getGrid().getRenderTileSize();
             slotHandler.draw((slot) -> {
                 if (this.loot != null) {
@@ -175,7 +115,7 @@ public class PokestopGUI extends PokemonGUI {
                         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                         if (!loot.hasEgg()) {
                             Item item = loot.getItem();
-                            this.mc.getTextureManager().bindTexture(PokemonHandler.getTexture(item.getItemId()));
+                            this.mc.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(item.getItemId()));
                             this.drawTexturedModalRect(slot.getX() + 3, slot.getY() + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
                             this.fontRendererObj.drawString("x" + item.getCount(), slot.getX() + 2, slot.getY() + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
                         } else {

@@ -4,7 +4,9 @@ import POGOProtos.Enums.PokemonIdOuterClass;
 import com.pokegoapi.api.inventory.Pokedex;
 import com.pokegoapi.api.map.pokemon.NearbyPokemon;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonMapHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -37,7 +39,7 @@ public class NearbyViewHandler extends ViewHandler {
             }
         }
         Pokedex pokedex = PokemonHandler.API.getInventories().getPokedex();
-        List<NearbyPokemon> nearbyPokemon = PokemonHandler.getNearbyPokemon();
+        List<NearbyPokemon> nearbyPokemon = PokemonMapHandler.getNearbyPokemon();
         if (nearbyPokemon.size() > 0) {
             this.fontRenderer.drawString(I18n.translateToLocalFormatted("gui.spotted.name", nearbyPokemon.size()), 5, 23, textColor);
             int x = 0;
@@ -55,7 +57,7 @@ public class NearbyViewHandler extends ViewHandler {
             GlStateManager.enableBlend();
             for (Map.Entry<PokemonIdOuterClass.PokemonId, Integer> pokemon : sortedNearbyPokemon.entrySet()) {
                 PokemonIdOuterClass.PokemonId pokemonId = pokemon.getKey();
-                AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemonId);
+                AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemonId);
                 int renderX = x * tileSize + 5;
                 int renderY = y * tileSize + 35;
                 if (texture != null) {
@@ -71,7 +73,7 @@ public class NearbyViewHandler extends ViewHandler {
                     this.fontRenderer.drawString("x" + pokemon.getValue(), renderX + 2, renderY + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
                 }
                 x++;
-                if (x > 10) {
+                if (x >= 10) {
                     x = 0;
                     y++;
                 }
@@ -88,7 +90,7 @@ public class NearbyViewHandler extends ViewHandler {
                 if (mouseX >= renderX && mouseX <= renderX + tileRenderSize && mouseY >= renderY && mouseY <= renderY + tileRenderSize) {
                     List<String> text = new LinkedList<>();
                     if (pokedex.getPokedexEntry(pokemonId) != null) {
-                        text.add(TextFormatting.BLUE + PokemonHandler.getName(pokemonId));
+                        text.add(TextFormatting.BLUE + PokemonGUIHandler.getName(pokemonId));
                     }
                     this.drawHoveringText(text, (int) mouseX, (int) mouseY);
                 }

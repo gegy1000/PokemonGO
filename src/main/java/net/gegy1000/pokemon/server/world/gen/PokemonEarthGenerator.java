@@ -24,17 +24,11 @@ public class PokemonEarthGenerator extends EarthGenerator {
 
     @Override
     public double getHeight(int x, int y) {
-        double height = this.extractHeight(x, y);
-        if (height < 62) {
-            height = 15;
-        } else {
-            height = 23 + new Random(y * 43200L + x).nextInt(5);
-        }
-        return height;
+        return 23 + new Random(y * 43200L + x).nextInt(5);
     }
 
     @Override
     public Biome getBiomeForCoords(int x, int z) {
-        return this.getHeightForCoords(x, z) < 21 ? DEFAULT_BIOME : Biomes.PLAINS;
+        return Biomes.PLAINS;
     }
 }

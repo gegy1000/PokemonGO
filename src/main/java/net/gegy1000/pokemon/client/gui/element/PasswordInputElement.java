@@ -2,7 +2,9 @@ package net.gegy1000.pokemon.client.gui.element;
 
 import net.gegy1000.pokemon.client.gui.PasswordFontRenderer;
 import net.ilexiconn.llibrary.LLibrary;
+import net.ilexiconn.llibrary.client.ClientProxy;
 import net.ilexiconn.llibrary.client.gui.element.Element;
+import net.ilexiconn.llibrary.client.gui.element.IElementGUI;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
@@ -20,7 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SideOnly(Side.CLIENT)
-public class PasswordInputElement<T extends GuiScreen> extends Element<T> {
+public class PasswordInputElement<T extends IElementGUI> extends Element<T> {
     private String text;
     private boolean selected;
     private int lineScrollOffset;
@@ -89,7 +91,7 @@ public class PasswordInputElement<T extends GuiScreen> extends Element<T> {
             if (renderVerticalCursor) {
                 this.drawRectangle(lineX, y, 1, this.getHeight() / 2 - this.passwordFontRenderer.FONT_HEIGHT / 2 + 1 + this.passwordFontRenderer.FONT_HEIGHT, LLibrary.CONFIG.getPrimaryColor());
             } else {
-                this.getGUI().mc.fontRendererObj.drawString("_", cursor == 0 ? lineX + 3 : lineX, y + 1 + this.getHeight() / 2 - this.passwordFontRenderer.FONT_HEIGHT / 2, LLibrary.CONFIG.getPrimaryColor(), false);
+                ClientProxy.MINECRAFT.fontRendererObj.drawString("_", cursor == 0 ? lineX + 3 : lineX, y + 1 + this.getHeight() / 2 - this.passwordFontRenderer.FONT_HEIGHT / 2, LLibrary.CONFIG.getPrimaryColor(), false);
             }
         }
 

@@ -23,7 +23,7 @@ public class ChunkGeneratorPokemon extends ChunkGeneratorEarth {
         int x = chunkX * 16;
         int z = chunkZ * 16;
         BlockPos pos = new BlockPos(x, 0, z);
-        Biome biome = this.world.getBiomeGenForCoords(pos.add(16, 0, 16));
+        Biome biome = this.world.getBiome(pos.add(16, 0, 16));
         this.random.setSeed(this.world.getSeed());
         long i1 = this.random.nextLong() / 2L * 2L + 1L;
         long j1 = this.random.nextLong() / 2L * 2L + 1L;

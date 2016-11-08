@@ -3,7 +3,7 @@ package net.gegy1000.pokemon.client.renderer.pokemon;
 import POGOProtos.Enums.PokemonIdOuterClass;
 import net.gegy1000.pokemon.client.renderer.PokemonObjectRenderer;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
-import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
@@ -42,7 +42,7 @@ public class PokemonRenderer extends PokemonObjectRenderer<RenderedPokemon> {
             if (distance <= 1024) {
                 GlStateManager.pushMatrix();
                 GlStateManager.translate(x, y + (0.7F * scale), z);
-                String name = PokemonHandler.getName(pokemon.getPokemonID());
+                String name = PokemonGUIHandler.getName(pokemon.getPokemonID());
                 GlStateManager.glNormal3f(0.0F, 1.0F, 0.0F);
                 GlStateManager.rotate(-MC.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
                 GlStateManager.rotate((MC.getRenderManager().options.thirdPersonView == 2 ? -1 : 1) * MC.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);

@@ -6,7 +6,7 @@ import com.pokegoapi.api.inventory.Inventories;
 import com.pokegoapi.api.inventory.Pokedex;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
-import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextFormatting;
@@ -40,7 +40,7 @@ public class PokedexHandler extends InventoryHandler {
                 } else {
                     GlStateManager.color(0.0F, 0.0F, 0.0F, 0.4F);
                 }
-                AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon);
+                AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon);
                 if (texture != null) {
                     texture.bind();
                     this.drawTexturedModalRect(slot.getX(), slot.getY(), 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize, tileRenderSize);
@@ -52,7 +52,7 @@ public class PokedexHandler extends InventoryHandler {
             PokemonIdOuterClass.PokemonId pokemon = pokemons[slot.getIndex() + 1];
             PokedexEntryOuterClass.PokedexEntry pokedexEntry = entries.get(pokemon);
             if (pokedexEntry != null) {
-                text.add(TextFormatting.BLUE + PokemonHandler.getName(pokemon));
+                text.add(TextFormatting.BLUE + PokemonGUIHandler.getName(pokemon));
                 text.add(TextFormatting.GREEN + I18n.translateToLocalFormatted("gui.times_captured.name", String.valueOf(pokedexEntry.getTimesCaptured())));
                 text.add(TextFormatting.YELLOW + I18n.translateToLocalFormatted("gui.times_encountered.name", String.valueOf(pokedexEntry.getTimesEncountered())));
             }

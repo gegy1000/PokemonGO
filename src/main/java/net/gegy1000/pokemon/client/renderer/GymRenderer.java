@@ -4,7 +4,6 @@ import POGOProtos.Data.PokemonDataOuterClass;
 import com.pokegoapi.api.gym.Gym;
 import net.gegy1000.pokemon.client.renderer.model.GymModel;
 import net.gegy1000.pokemon.client.renderer.pokemon.DataRenderedPokemon;
-import net.gegy1000.pokemon.client.renderer.pokemon.GymRenderedPokemon;
 import net.gegy1000.pokemon.client.renderer.pokemon.RenderedPokemon;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -47,7 +46,7 @@ public class GymRenderer extends PokemonObjectRenderer<Gym> {
         float scale = 1.25F;
         GlStateManager.scale(scale, -scale, scale);
         GlStateManager.translate(0.0F, -1.5F, 0.0F);
-        GYM_MODEL.render(null, 0.0F, 0.0F, (int) (MC.thePlayer.ticksExisted + (gym.getLatitude() * 2000 * gym.getLongitude())) + partialTicks, 0.0F, 0.0F, 0.0625F);
+        GYM_MODEL.render(null, 0.0F, 0.0F, (MC.thePlayer.ticksExisted + ((int) (gym.getLatitude() * 2000 * gym.getLongitude()) & 0xFF)) + partialTicks, 0.0F, 0.0F, 0.0625F);
         GlStateManager.popMatrix();
         try {
             GlStateManager.pushMatrix();

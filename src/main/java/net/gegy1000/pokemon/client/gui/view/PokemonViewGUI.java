@@ -15,7 +15,6 @@ import net.gegy1000.pokemon.client.gui.view.inventory.InventoryViewHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.ilexiconn.llibrary.client.gui.element.LabelElement;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.renderer.GlStateManager;
@@ -51,6 +50,7 @@ public class PokemonViewGUI extends PokemonGUI {
 
     @Override
     public void initElements() {
+        this.clearElements();
         if (PokemonHandler.API == null) {
             WindowElement<PokemonViewGUI> window = new WindowElement<>(this, I18n.translateToLocal("gui.failure.name"), 172, 50, false);
             new LabelElement<>(this, I18n.translateToLocal("gui.not_logged_in.name"), 2.0F, 18.0F).withParent(window);
@@ -62,21 +62,21 @@ public class PokemonViewGUI extends PokemonGUI {
                 this.mc.displayGuiScreen(null);
                 return true;
             }).withParent(window).withColorScheme(THEME_WINDOW);
-            ElementHandler.INSTANCE.addElement(this, window);
+            this.addElement(window);
         }
-        ElementHandler.INSTANCE.addElement(this, this.character = new ButtonElement<>(this, I18n.translateToLocal("view.character.name"), this.width - 180.0F, 0.0F, 60, 18, (button) -> {
+        this.addElement(this.character = new ButtonElement<>(this, I18n.translateToLocal("view.character.name"), this.width - 180.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.CHARACTER);
             return true;
         }));
-        ElementHandler.INSTANCE.addElement(this, this.nearby = (ButtonElement<PokemonViewGUI>) new ButtonElement<>(this, I18n.translateToLocal("view.nearby.name"), this.width - 240.0F, 0.0F, 60, 18, (button) -> {
+        this.addElement(this.nearby = (ButtonElement<PokemonViewGUI>) new ButtonElement<>(this, I18n.translateToLocal("view.nearby.name"), this.width - 240.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.NEARBY);
             return true;
         }).withColorScheme(THEME_TAB_ACTIVE));
-        ElementHandler.INSTANCE.addElement(this, this.inventory = new ButtonElement<>(this, I18n.translateToLocal("view.inventory.name"), this.width - 120.0F, 0.0F, 60, 18, (button) -> {
+        this.addElement(this.inventory = new ButtonElement<>(this, I18n.translateToLocal("view.inventory.name"), this.width - 120.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.INVENTORY);
             return true;
         }));
-        ElementHandler.INSTANCE.addElement(this, this.statistics = new ButtonElement<>(this, I18n.translateToLocal("view.statistics.name"), this.width - 60.0F, 0.0F, 60, 18, (button) -> {
+        this.addElement(this.statistics = new ButtonElement<>(this, I18n.translateToLocal("view.statistics.name"), this.width - 60.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.STATISTICS);
             return true;
         }));
@@ -153,7 +153,7 @@ public class PokemonViewGUI extends PokemonGUI {
                                 this.setTeam(team, window);
                                 return null;
                             }).withParent(window);
-                            ElementHandler.INSTANCE.addElement(this, window);
+                            this.addElement(window);
                         }
                     }
                 }
@@ -164,16 +164,16 @@ public class PokemonViewGUI extends PokemonGUI {
     }
 
     private void setTeam(Team team, WindowElement<PokemonViewGUI> window) {
-        ElementHandler.INSTANCE.removeElement(this, window);
+        this.removeElement(window);
         WindowElement<PokemonViewGUI> confirmWindow = new WindowElement<>(this, I18n.translateToLocal("gui.confirm.name"), 235, 47, false);
         new LabelElement<>(this, I18n.translateToLocalFormatted("gui.team_confirm.name", team.getTeamName()), 2.0F, 16.0F).withParent(confirmWindow);
         new ButtonElement<>(this, I18n.translateToLocal("gui.cancel.name"), 1.0F, 31.0F, 116, 15, (button) -> {
-            ElementHandler.INSTANCE.removeElement(this, confirmWindow);
-            ElementHandler.INSTANCE.addElement(this, window);
+            this.removeElement(confirmWindow);
+            this.addElement(window);
             return true;
         }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
         new ButtonElement<>(this, I18n.translateToLocal("gui.okay.name"), 118.0F, 31.0F, 116, 15, (button) -> {
-            ElementHandler.INSTANCE.removeElement(this, confirmWindow);
+            this.removeElement(confirmWindow);
             new Thread(() -> {
                 try {
                     SetPlayerTeamMessageOuterClass.SetPlayerTeamMessage message = SetPlayerTeamMessageOuterClass.SetPlayerTeamMessage.newBuilder().setTeam(team.toTeamColor()).build();
@@ -189,7 +189,7 @@ public class PokemonViewGUI extends PokemonGUI {
             }).start();
             return true;
         }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
-        ElementHandler.INSTANCE.addElement(this, confirmWindow);
+        this.addElement(confirmWindow);
     }
 
     public void setViewMode(ViewMode viewMode) {

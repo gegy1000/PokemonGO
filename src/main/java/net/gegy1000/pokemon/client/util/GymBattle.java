@@ -15,7 +15,6 @@ import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.pokemon.Pokemon;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class GymBattle {
@@ -52,7 +51,7 @@ public class GymBattle {
         builder.setPlayerLatitude(this.api.getLatitude());
         builder.setPlayerLongitude(this.api.getLongitude());
         builder.setDefendingPokemonId(this.gym.getDefendingPokemon().get(0).getId());
-        this.startResponse = PokemonHandler.request(RequestTypeOuterClass.RequestType.START_GYM_BATTLE, builder.build(), StartGymBattleResponseOuterClass.StartGymBattleResponse.class);
+        this.startResponse = PokemonRequestHandler.request(RequestTypeOuterClass.RequestType.START_GYM_BATTLE, builder.build(), StartGymBattleResponseOuterClass.StartGymBattleResponse.class);
         this.battleId = this.startResponse.getBattleId();
         if (this.startResponse.getResult() == StartGymBattleResponseOuterClass.StartGymBattleResponse.Result.SUCCESS) {
             this.inProgress = true;
@@ -72,9 +71,9 @@ public class GymBattle {
         builder.addAllAttackActions(actions);
         BattleActionOuterClass.BattleAction lastAction = this.getLastAction();
         if (lastAction != null) {
-            builder.setLastRetrievedActions(lastAction);
+            builder.setLastRetrievedAction(lastAction);
         }
-        this.lastResponse = PokemonHandler.request(RequestTypeOuterClass.RequestType.ATTACK_GYM, builder.build(), AttackGymResponseOuterClass.AttackGymResponse.class);
+        this.lastResponse = PokemonRequestHandler.request(RequestTypeOuterClass.RequestType.ATTACK_GYM, builder.build(), AttackGymResponseOuterClass.AttackGymResponse.class);
         this.activeAttacker = this.lastResponse.getActiveAttacker();
         this.activeDefender = this.lastResponse.getActiveDefender();
         this.state = this.lastResponse.getBattleLog().getState();

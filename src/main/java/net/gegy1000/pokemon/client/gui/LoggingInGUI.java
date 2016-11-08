@@ -16,7 +16,7 @@ public class LoggingInGUI extends PokemonGUI {
     @Override
     public void updateScreen() {
         super.updateScreen();
-        if (!PokemonHandler.isLoggingIn() && !PokemonHandler.isLoginFailed()) {
+        if (!PokemonHandler.isAuthenticating() && !PokemonHandler.isLoginFailed()) {
             this.mc.displayGuiScreen(null);
         }
     }

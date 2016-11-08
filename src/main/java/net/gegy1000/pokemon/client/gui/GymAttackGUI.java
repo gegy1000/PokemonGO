@@ -15,9 +15,9 @@ import net.gegy1000.pokemon.client.gui.element.ModelViewElement;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
 import net.gegy1000.pokemon.client.renderer.pokemon.GymRenderedPokemon;
 import net.gegy1000.pokemon.client.util.GymBattle;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
@@ -86,10 +86,10 @@ public class GymAttackGUI extends PokemonGUI {
 
     @Override
     public void initElements() {
-        ElementHandler.INSTANCE.addElement(this, this.viewElement = new ModelViewElement<>(this, 0.0F, 46.0F, this.width, this.height - 46, (view) -> {
+        this.addElement(this.viewElement = new ModelViewElement<>(this, 0.0F, 46.0F, this.width, this.height - 46, (view) -> {
             GlStateManager.scale(1.0F, -1.0F, 1.0F);
             float partialTicks = LLibrary.PROXY.getPartialTicks();
-            RenderHandler.GYM_RENDERER.render(this.gym, 0.0, -11.0, 0.0, partialTicks);
+            RenderHandler.GYM_RENDERER.render(this.gym, 0.0, -8.0, 0.0, partialTicks);
             GlStateManager.enableTexture2D();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.scale(0.25F, 0.25F, 0.25F);
@@ -130,7 +130,7 @@ public class GymAttackGUI extends PokemonGUI {
                 BattlePokemonInfoOuterClass.BattlePokemonInfo activeDefender = this.battle.getActiveDefender();
                 if (activeDefender != null) {
                     PokemonDataOuterClass.PokemonData defenderData = activeDefender.getPokemonData();
-                    String defenderName = defenderData.getNickname() == null || defenderData.getNickname().length() == 0 ? PokemonHandler.getName(defenderData.getPokemonId()) : defenderData.getNickname();
+                    String defenderName = defenderData.getNickname() == null || defenderData.getNickname().length() == 0 ? PokemonGUIHandler.getName(defenderData.getPokemonId()) : defenderData.getNickname();
                     String defenderText = I18n.translateToLocalFormatted("gui.gym_pokemon.name", defenderName, String.valueOf(defenderData.getCp()));
                     this.fontRendererObj.drawString(defenderText, 3, 36, textColor);
                     GlStateManager.disableTexture2D();
@@ -142,7 +142,7 @@ public class GymAttackGUI extends PokemonGUI {
                 BattlePokemonInfoOuterClass.BattlePokemonInfo activeAttacker = this.battle.getActiveAttacker();
                 if (activeAttacker != null) {
                     PokemonDataOuterClass.PokemonData attackerData = activeAttacker.getPokemonData();
-                    String defenderName = attackerData.getNickname() == null || attackerData.getNickname().length() == 0 ? PokemonHandler.getName(attackerData.getPokemonId()) : attackerData.getNickname();
+                    String defenderName = attackerData.getNickname() == null || attackerData.getNickname().length() == 0 ? PokemonGUIHandler.getName(attackerData.getPokemonId()) : attackerData.getNickname();
                     String defenderText = I18n.translateToLocalFormatted("gui.gym_pokemon.name", defenderName, String.valueOf(attackerData.getCp()));
                     this.fontRendererObj.drawString(defenderText, this.width - this.fontRendererObj.getStringWidth(defenderText) - 3, 36, textColor);
                     GlStateManager.disableTexture2D();
@@ -159,7 +159,7 @@ public class GymAttackGUI extends PokemonGUI {
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         super.mouseClicked(mouseX, mouseY, mouseButton);
-        if (ElementHandler.INSTANCE.isElementOnTop(this, this.viewElement)) {
+        if (this.isElementOnTop(this.viewElement)) {
             this.startClick = PokemonHandler.API.currentTimeMillis();
             this.clicked = true;
         }
@@ -179,8 +179,8 @@ public class GymAttackGUI extends PokemonGUI {
             builder.setDurationMs(totalAttackDuration);
             builder.setType(BattleActionTypeOuterClass.BattleActionType.ACTION_ATTACK);
             builder.setActivePokemonId(activeAttacker.getPokemonData().getId());
-            builder.setDamageWindowsStartTimestampMss(attackTime + totalAttackDuration - 200);
-            builder.setDamageWindowsEndTimestampMss(attackTime + totalAttackDuration);
+            builder.setDamageWindowsStartTimestampMs(attackTime + totalAttackDuration - 200);
+            builder.setDamageWindowsEndTimestampMs(attackTime + totalAttackDuration);
             builder.setActionStartMs(attackTime);
             builder.setTargetIndex(-1);
             this.battle.addActionToQueue(builder);

@@ -2,7 +2,6 @@ package net.gegy1000.pokemon.client.gui.view.inventory;
 
 import POGOProtos.Data.PokemonDataOuterClass;
 import POGOProtos.Networking.Responses.NicknamePokemonResponseOuterClass;
-import POGOProtos.Networking.Responses.ReleasePokemonResponseOuterClass;
 import com.pokegoapi.api.inventory.CandyJar;
 import com.pokegoapi.api.inventory.Inventories;
 import com.pokegoapi.api.inventory.PokeBank;
@@ -15,11 +14,13 @@ import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.DrawableElement;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonUtils;
 import net.ilexiconn.llibrary.LLibrary;
+import net.ilexiconn.llibrary.client.ClientProxy;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
 import net.ilexiconn.llibrary.client.gui.element.Element;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.ilexiconn.llibrary.client.gui.element.InputElement;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.Minecraft;
@@ -43,17 +44,26 @@ public class PokebankHandler extends InventoryHandler {
     @Override
     public void renderSlots(Inventories inventories, InventoryGridElement.SlotHandler slotHandler) {
         PokeBank pokebank = inventories.getPokebank();
-        List<Pokemon> pokemons = pokebank.getPokemons();
         int tileRenderSize = slotHandler.getGrid().getRenderTileSize();
+        List<Pokemon> pokemons = new ArrayList<>(pokebank.getPokemons());
+        pokemons.sort((pokemon1, pokemon2) -> {
+            int pokemonId1 = pokemon1.getPokemonId().getNumber();
+            int pokemonId2 = pokemon2.getPokemonId().getNumber();
+            if (pokemonId1 == pokemonId2) {
+                return Integer.compare(pokemon2.getCp(), pokemon1.getCp());
+            } else {
+                return Integer.compare(pokemonId1, pokemonId2);
+            }
+        });
         slotHandler.draw((slot) -> {
             Pokemon pokemon = pokemons.get(slot.getIndex());
-            AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon.getPokemonId());
+            AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon.getPokemonId());
             if (texture != null) {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 texture.bind();
                 this.drawTexturedModalRect(slot.getX(), slot.getY(), 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize, tileRenderSize);
             }
-            this.fontRenderer.drawString(I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp()), (int) slot.getX() + 1, (int) slot.getY() + tileRenderSize - 9, LLibrary.CONFIG.getTextColor());
+            this.fontRenderer.drawString(I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp()), (int) slot.getX() + 1, (int) slot.getY() + tileRenderSize - 8, LLibrary.CONFIG.getTextColor());
             GlStateManager.disableTexture2D();
             this.drawRectangle(slot.getX() + 1, slot.getY() + 1, tileRenderSize - 2, 4, LLibrary.CONFIG.getPrimaryColor());
             this.drawRectangle(slot.getX() + 2, slot.getY() + 2, pokemon.getStamina() * (tileRenderSize - 4) / pokemon.getMaxStamina(), 2, 0xFF4AD33C);
@@ -61,7 +71,7 @@ public class PokebankHandler extends InventoryHandler {
         }, (slot) -> {
             List<String> text = new ArrayList<>();
             Pokemon pokemon = pokemons.get(slot.getIndex());
-            text.add(TextFormatting.BLUE + (pokemon.getNickname() != null && pokemon.getNickname().length() > 0 ? pokemon.getNickname() : PokemonHandler.getName(pokemon.getPokemonId())));
+            text.add(TextFormatting.BLUE + (pokemon.getNickname() != null && pokemon.getNickname().length() > 0 ? pokemon.getNickname() : PokemonGUIHandler.getName(pokemon.getPokemonId())));
             text.add(TextFormatting.GREEN + I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp()));
             return text;
         }, pokemons.size());
@@ -70,44 +80,59 @@ public class PokebankHandler extends InventoryHandler {
     @Override
     public void click(Inventories inventories, InventoryGridElement.SlotHandler slotHandler) {
         PokeBank pokebank = inventories.getPokebank();
-        List<Pokemon> pokemons = pokebank.getPokemons();
+        List<Pokemon> pokemons = new ArrayList<>(pokebank.getPokemons());
+        pokemons.sort((pokemon1, pokemon2) -> {
+            int pokemonId1 = pokemon1.getPokemonId().getNumber();
+            int pokemonId2 = pokemon2.getPokemonId().getNumber();
+            if (pokemonId1 == pokemonId2) {
+                return Integer.compare(pokemon2.getCp(), pokemon1.getCp());
+            } else {
+                return Integer.compare(pokemonId1, pokemonId2);
+            }
+        });
         ScaledResolution resolution = new ScaledResolution(Minecraft.getMinecraft());
         slotHandler.click(slot -> {
-            try {
-                Pokemon pokemon = pokemons.get(slot.getIndex());
-                String displayName = PokemonHandler.getName(pokemon.getPokemonId());
-                int scaleFactor = resolution.getScaleFactor();
-                WindowElement<PokemonViewGUI> window = new WindowElement<>(this.getGUI(), I18n.translateToLocalFormatted("gui.pokemon_info.name", displayName), scaleFactor * 100, scaleFactor * 100, true);
-                int centerX = scaleFactor * 50;
-                int iconSize = scaleFactor * 35;
-                int nameWidth = scaleFactor * 40;
-                String nickname = pokemon.getNickname();
-                int buttonHeight = scaleFactor * 6;
-                int buttonOffset = scaleFactor * 20;
-                int buttonY = scaleFactor * (100 - 33);
-                CandyJar candyJar = PokemonHandler.API.getInventories().getCandyjar();
-                boolean canEvolve = candyJar.getCandies(pokemon.getPokemonFamily()) >= pokemon.getCandiesToEvolve() && pokemon.getCandiesToEvolve() > 0;
-                boolean canPowerUpCandy = candyJar.getCandies(pokemon.getPokemonFamily()) >= pokemon.getCandyCostsForPowerup();
-                boolean canPowerUpStardust = PokemonHandler.API.getPlayerProfile().getCurrencies().get(PlayerProfile.Currency.STARDUST) >= pokemon.getStardustCostsForPowerup();
-                boolean canPowerUp = canPowerUpCandy && canPowerUpStardust;
-                int textColor = LLibrary.CONFIG.getTextColor();
-                int fontHeight = (int) (this.fontRenderer.FONT_HEIGHT / 2.5F * scaleFactor);
-                new InputElement<>(this.getGUI(), nickname != null && nickname.length() > 0 ? nickname : displayName, centerX - nameWidth / 2, iconSize + 26, nameWidth, (input) -> new Thread(() -> {
-                    try {
-                        if (!input.getText().equals(nickname)) {
-                            String newNickname = input.getText().equals(displayName) ? "" : input.getText();
-                            if (pokemon.renamePokemon(newNickname) == NicknamePokemonResponseOuterClass.NicknamePokemonResponse.Result.SUCCESS) {
-                                pokemon.setProto(pokemon.getProto().toBuilder().mergeFrom(PokemonDataOuterClass.PokemonData.newBuilder().setNickname(newNickname).build()).build());
-                            } else {
-                                input.clearText();
-                                input.writeText(pokemon.getNickname() == null || pokemon.getNickname().length() == 0 ? displayName : pokemon.getNickname());
-                            }
+            this.openPokemonView(resolution, pokemons.get(slot.getIndex()));
+            return true;
+        }, pokemons.size());
+    }
+
+    private void openPokemonView(ScaledResolution resolution, Pokemon pokemon) {
+        try {
+            String displayName = PokemonGUIHandler.getName(pokemon.getPokemonId());
+            int scaleFactor = resolution.getScaleFactor();
+            WindowElement<PokemonViewGUI> window = new WindowElement<>(this.getGUI(), I18n.translateToLocalFormatted("gui.pokemon_info.name", displayName), scaleFactor * 100, scaleFactor * 100, true);
+            int centerX = scaleFactor * 50;
+            int iconSize = scaleFactor * 35;
+            int nameWidth = scaleFactor * 40;
+            String nickname = pokemon.getNickname();
+            int buttonHeight = scaleFactor * 6;
+            int buttonOffset = scaleFactor * 20;
+            int buttonY = scaleFactor * (100 - 33);
+            CandyJar candyJar = PokemonHandler.API.getInventories().getCandyjar();
+            boolean canEvolve = candyJar.getCandies(pokemon.getPokemonFamily()) >= pokemon.getCandiesToEvolve() && pokemon.getCandiesToEvolve() > 0;
+            boolean canPowerUpCandy = candyJar.getCandies(pokemon.getPokemonFamily()) >= pokemon.getCandyCostsForPowerup();
+            boolean canPowerUpStardust = PokemonHandler.API.getPlayerProfile().getCurrencies().get(PlayerProfile.Currency.STARDUST) >= pokemon.getStardustCostsForPowerup();
+            boolean canPowerUp = canPowerUpCandy && canPowerUpStardust;
+            int textColor = LLibrary.CONFIG.getTextColor();
+            int fontHeight = (int) (this.fontRenderer.FONT_HEIGHT / 2.5F * scaleFactor);
+            new InputElement<>(this.getGUI(), centerX - nameWidth / 2, iconSize + 26, nameWidth, nickname != null && nickname.length() > 0 ? nickname : displayName, (input) -> new Thread(() -> {
+                try {
+                    if (!input.getText().equals(nickname)) {
+                        String newNickname = input.getText().equals(displayName) ? "" : input.getText();
+                        if (pokemon.renamePokemon(newNickname) == NicknamePokemonResponseOuterClass.NicknamePokemonResponse.Result.SUCCESS) {
+                            pokemon.setProto(pokemon.getProto().toBuilder().mergeFrom(PokemonDataOuterClass.PokemonData.newBuilder().setNickname(newNickname).build()).build());
+                        } else {
+                            input.clearText();
+                            input.writeText(pokemon.getNickname() == null || pokemon.getNickname().length() == 0 ? displayName : pokemon.getNickname());
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }).start()).withParent(window);
-                new DrawableElement<>(this.getGUI(), 0.0F, 14.0F, scaleFactor * 100, scaleFactor * 100 - 14, (mousePosition) -> {
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start()).withParent(window);
+            new DrawableElement<>(this.getGUI(), 0.0F, 14.0F, scaleFactor * 100, scaleFactor * 100 - 14, (mousePosition) -> {
+                try {
                     DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
                     symbols.setDecimalSeparator('.');
                     symbols.setGroupingSeparator(',');
@@ -115,18 +140,20 @@ public class PokebankHandler extends InventoryHandler {
                     int x = centerX - iconSize / 2;
                     int y = 10;
                     this.drawRectangle(x, y, iconSize, iconSize, LLibrary.CONFIG.getSecondaryColor());
-                    AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon.getPokemonId());
+                    AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon.getPokemonId());
                     if (texture != null) {
                         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                         texture.bind();
                         this.drawTexturedModalRect(x, y, 0.0F, 0.0F, 1.0F, 1.0F, iconSize, iconSize);
                     }
+                    String iv = I18n.translateToLocalFormatted("gui.iv.name", (int) PokemonUtils.calculateIV(pokemon) + "%");
+                    this.fontRenderer.drawString(iv, centerX - this.fontRenderer.getStringWidth(iv) / 2, y + iconSize - 10, textColor);
                     GlStateManager.disableTexture2D();
                     this.drawRectangle(buttonOffset / 2, buttonY, scaleFactor * 100 - buttonOffset, buttonHeight, LLibrary.CONFIG.getSecondaryColor());
                     this.drawRectangle(buttonOffset / 2, buttonY + buttonHeight + 4, scaleFactor * 100 - buttonOffset, buttonHeight, LLibrary.CONFIG.getSecondaryColor());
                     int healthWidth = scaleFactor * 30;
                     this.drawRectangle(centerX - healthWidth / 2 - 1, y + iconSize + 16, healthWidth + 2, 11, LLibrary.CONFIG.getSecondaryColor());
-                    this.drawRectangle(centerX - healthWidth / 2, y + iconSize + 17, (pokemon.getStamina() * healthWidth) / pokemon.getMaxStamina(), 9, 0xFF4AD33C);
+                    this.drawRectangle(centerX - healthWidth / 2, y + iconSize + 17, pokemon.getMaxStamina() <= 0 ? 0 : (pokemon.getStamina() * healthWidth) / pokemon.getMaxStamina(), 9, 0xFF4AD33C);
                     String hp = I18n.translateToLocalFormatted("gui.hp.name", pokemon.getStamina(), pokemon.getMaxStamina());
                     this.fontRenderer.drawString(hp, centerX - this.fontRenderer.getStringWidth(hp) / 2, y + iconSize + 18, textColor);
                     String cp = I18n.translateToLocalFormatted("gui.cp.name", pokemon.getCp());
@@ -147,62 +174,68 @@ public class PokebankHandler extends InventoryHandler {
                         this.fontRenderer.drawString(String.valueOf(canEvolve ? "" : TextFormatting.RED) + pokemon.getCandiesToEvolve(), buttonOffset + scaleFactor * 50, buttonY + resolution.getScaleFactor() * 8 + buttonHeight / 2 - fontHeight / 2, textColor);
                     }
                     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                    this.getGUI().mc.getTextureManager().bindTexture(PokemonHandler.getTexture(pokemon.getPokemonFamily()));
+                    ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(pokemon.getPokemonFamily()));
                     int costIconSize = (int) (scaleFactor * 5.5);
                     if (pokemon.getCandiesToEvolve() != 0) {
                         this.drawTexturedModalRect(buttonOffset + scaleFactor * 43, buttonY + resolution.getScaleFactor() * 8 + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
                     }
                     this.drawTexturedModalRect(buttonOffset / 2 + scaleFactor * 43, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
-                    this.getGUI().mc.getTextureManager().bindTexture(PokemonGUI.STARDUST_TEXTURE);
+                    ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUI.STARDUST_TEXTURE);
                     this.drawTexturedModalRect((int) (buttonOffset * 1.3) + scaleFactor * 45, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
-                    return null;
-                }).withParent(window);
-                new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.release.name"), 1.0F, scaleFactor * 100 - 21, scaleFactor * 100 - 2, 20, (button) -> {
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }).withParent(window);
+            new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.release.name"), 1.0F, scaleFactor * 100 - 21, scaleFactor * 100 - 2, 20, (button) -> {
+                new Thread(() -> {
+                    try {
+                        this.getGUI().removeElement(window);
+                        pokemon.transferPokemon();
+                        PokemonHandler.API.getPlayerProfile().updateProfile();
+                        PokemonHandler.API.getInventories().updateInventories();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+                return true;
+            }).withParent(window);
+            new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.power_up.name"), buttonOffset / 2 + 1, buttonY + 15, scaleFactor * 50 - buttonOffset / 2, buttonHeight - 2, (button) -> {
+                if (canPowerUp) {
                     new Thread(() -> {
                         try {
-                            if (pokemon.transferPokemon() == ReleasePokemonResponseOuterClass.ReleasePokemonResponse.Result.SUCCESS) {
-                                ElementHandler.INSTANCE.removeElement(this.getGUI(), window);
-                            }
+                            pokemon.powerUp();
+                            PokemonHandler.API.getPlayerProfile().updateProfile();
+                            PokemonHandler.API.getInventories().updateInventories();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }).start();
                     return true;
-                }).withParent(window);
-                new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.power_up.name"), buttonOffset / 2 + 1, buttonY + 15, scaleFactor * 50 - buttonOffset / 2, buttonHeight - 2, (button) -> {
-                    if (canPowerUp) {
-                        new Thread(() -> {
-                            try {
-                                pokemon.powerUp();
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                }
+                return false;
+            }).withParent(window).withColorScheme(canPowerUp ? Element.DEFAULT : PokemonGUI.THEME_DISABLED).setEnabled(canPowerUp);
+            new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.evolve.name"), buttonOffset / 2 + 1, buttonY + buttonHeight + 19, scaleFactor * 50 - buttonOffset / 2, buttonHeight - 2, (button) -> {
+                if (canEvolve) {
+                    new Thread(() -> {
+                        try {
+                            EvolutionResult result = pokemon.evolve();
+                            if (result.isSuccessful()) {
+                                this.openPokemonView(resolution, result.getEvolvedPokemon());
+                                PokemonHandler.API.getPlayerProfile().updateProfile();
+                                PokemonHandler.API.getInventories().updateInventories();
                             }
-                        }).start();
-                        return true;
-                    }
-                    return false;
-                }).withParent(window).withColorScheme(canPowerUp ? Element.DEFAULT : PokemonGUI.THEME_DISABLED).setEnabled(canPowerUp);
-                new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.evolve.name"), buttonOffset / 2 + 1, buttonY + buttonHeight + 19, scaleFactor * 50 - buttonOffset / 2, buttonHeight - 2, (button) -> {
-                    if (canEvolve) {
-                        new Thread(() -> {
-                            try {
-                                EvolutionResult result = pokemon.evolve();
-                                if (result.isSuccessful()) {
-                                    PokemonHandler.API.getPlayerProfile().updateProfile();
-                                }
-                                ElementHandler.INSTANCE.removeElement(this.getGUI(), window);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }).start();
-                        return true;
-                    }
-                    return false;
-                }).withParent(window).withColorScheme(canEvolve ? Element.DEFAULT : PokemonGUI.THEME_DISABLED).setEnabled(canEvolve);
-                ElementHandler.INSTANCE.addElement(this.getGUI(), window);
-            } catch (Exception e) {
-            }
-            return true;
-        }, pokemons.size());
+                            this.getGUI().removeElement(window);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                    return true;
+                }
+                return false;
+            }).withParent(window).withColorScheme(canEvolve ? Element.DEFAULT : PokemonGUI.THEME_DISABLED).setEnabled(canEvolve);
+            this.getGUI().addElement(window);
+        } catch (Exception e) {
+        }
     }
 }

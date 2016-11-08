@@ -5,7 +5,6 @@ import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.gegy1000.pokemon.client.gui.view.ViewHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.ilexiconn.llibrary.client.gui.element.ListElement;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.text.translation.I18n;
@@ -49,7 +48,7 @@ public class InventoryViewHandler extends ViewHandler {
         if (this.inventoriesList == null || this.inventoryGrid == null) {
             new Thread(() -> {
                 try {
-                    PokemonHandler.API.getInventories().updateInventories(true);
+                    PokemonHandler.API.getInventories().updateInventories();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -59,12 +58,11 @@ public class InventoryViewHandler extends ViewHandler {
                 inventoryTypes.add(type.getName());
             }
             if (this.inventoriesList == null) {
-                ElementHandler.INSTANCE.addElement(this.getGUI(), this.inventoriesList = new ListElement<>(this.getGUI(), 0.0F, 18.0F, 80, this.getGUI().height - 52, inventoryTypes, 20, list -> {
+                this.getGUI().addElement(this.inventoriesList = new ListElement<>(this.getGUI(), 0.0F, 18.0F, 80, this.getGUI().height - 52, inventoryTypes, 20, list -> {
                     this.selectedInventoryType = InventoryType.values()[list.getSelectedIndex()];
                     this.selectedInventoryType.getHandler().init(this.getGUI(), this);
                     return true;
                 }));
-                this.inventoriesList.init();
                 this.inventoriesList.setSelectedIndex(0);
             }
             if (this.inventoryGrid == null) {
@@ -72,7 +70,7 @@ public class InventoryViewHandler extends ViewHandler {
                 int tileSize = resolution.getScaleFactor() * 21;
                 int tilesX = 8;
                 int tilesY = 4;
-                ElementHandler.INSTANCE.addElement(this.getGUI(), this.inventoryGrid = new InventoryGridElement<>(this.getGUI(), (this.getGUI().width - 80 - tileSize * 8) / 2 + 80, 35, tilesX * tileSize, tilesY * tileSize, tilesX, tileSize, (slotHandler) -> {
+                this.getGUI().addElement(this.inventoryGrid = new InventoryGridElement<>(this.getGUI(), (this.getGUI().width - 80 - tileSize * 8) / 2 + 80, 35, tilesX * tileSize, tilesY * tileSize, tilesX, tileSize, (slotHandler) -> {
                     try {
                         Inventories inventories = PokemonHandler.API.getInventories();
                         this.selectedInventoryType.getHandler().renderSlots(inventories, slotHandler);
@@ -89,7 +87,6 @@ public class InventoryViewHandler extends ViewHandler {
                     }
                     return false;
                 }));
-                this.inventoryGrid.init();
             }
         }
     }
@@ -97,11 +94,11 @@ public class InventoryViewHandler extends ViewHandler {
     @Override
     public void cleanupView() {
         if (this.inventoriesList != null) {
-            ElementHandler.INSTANCE.removeElement(this.getGUI(), this.inventoriesList);
+            this.getGUI().removeElement(this.inventoriesList);
             this.inventoriesList = null;
         }
         if (this.inventoryGrid != null) {
-            ElementHandler.INSTANCE.removeElement(this.getGUI(), this.inventoryGrid);
+            this.getGUI().removeElement(this.inventoryGrid);
             this.inventoryGrid = null;
         }
         this.selectedInventoryType = InventoryType.POKEBANK;

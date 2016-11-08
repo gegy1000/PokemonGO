@@ -1,12 +1,11 @@
 package net.gegy1000.pokemon.client.gui.view;
 
 import POGOProtos.Networking.Responses.ClaimCodenameResponseOuterClass;
-import net.gegy1000.pokemon.client.gui.CapturePokemonGUI;
 import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonRequestHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
 import net.ilexiconn.llibrary.client.gui.element.InputElement;
 import net.ilexiconn.llibrary.client.gui.element.LabelElement;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
@@ -45,11 +44,11 @@ public class CharacterViewHandler extends ViewHandler {
 
     @Override
     public void initView() {
-        ElementHandler.INSTANCE.addElement(this.getGUI(), this.name = new InputElement<>(this.getGUI(), PokemonHandler.getUsername(), 4.0F, 22.0F, 100, (input) -> {
+        this.getGUI().addElement(this.name = new InputElement<>(this.getGUI(), 4.0F, 22.0F, 100, PokemonHandler.getUsername(), (input) -> {
             if (!Objects.equals(PokemonHandler.getUsername(), this.name.getText())) {
                 new Thread(() -> {
                     try {
-                        ClaimCodenameResponseOuterClass.ClaimCodenameResponse.Status status = PokemonHandler.setUsername(this.name.getText());
+                        ClaimCodenameResponseOuterClass.ClaimCodenameResponse.Status status = PokemonRequestHandler.setUsername(this.name.getText());
                         String statusWindowTitle = null;
                         String statusWindowMessage = null;
                         switch (status) {
@@ -79,10 +78,10 @@ public class CharacterViewHandler extends ViewHandler {
                             WindowElement<PokemonViewGUI> window = new WindowElement<>(this.getGUI(), statusWindowTitle, windowWidth, 45, false);
                             new LabelElement<>(this.getGUI(), statusWindowMessage, 2, 18).withParent(window);
                             new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.okay.name"), 1, 29, windowWidth - 2, 15, (button) -> {
-                                ElementHandler.INSTANCE.removeElement(this.getGUI(), window);
+                                this.getGUI().removeElement(window);
                                 return true;
                             }).withParent(window).withColorScheme(PokemonGUI.THEME_WINDOW);
-                            ElementHandler.INSTANCE.addElement(this.getGUI(), window);
+                            this.getGUI().addElement(window);
                         }
                     } catch (Exception e) {
                     }
@@ -94,7 +93,7 @@ public class CharacterViewHandler extends ViewHandler {
     @Override
     public void cleanupView() {
         if (this.name != null) {
-            ElementHandler.INSTANCE.removeElement(this.getGUI(), this.name);
+            this.getGUI().removeElement(this.name);
         }
     }
 }

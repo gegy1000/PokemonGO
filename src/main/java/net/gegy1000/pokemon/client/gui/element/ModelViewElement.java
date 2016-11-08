@@ -1,8 +1,9 @@
 package net.gegy1000.pokemon.client.gui.element;
 
+import net.ilexiconn.llibrary.client.ClientProxy;
 import net.ilexiconn.llibrary.client.gui.element.Element;
+import net.ilexiconn.llibrary.client.gui.element.IElementGUI;
 import net.ilexiconn.llibrary.client.util.ClientUtils;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -12,7 +13,7 @@ import org.lwjgl.util.glu.GLU;
 import javax.vecmath.Vector2f;
 import java.util.function.Function;
 
-public class ModelViewElement<T extends GuiScreen> extends Element<T> {
+public class ModelViewElement<T extends IElementGUI> extends Element<T> {
     private Function<ModelViewElement, Void> renderFunction;
     private Function<Vector2f, Boolean> clickFunction;
 
@@ -47,7 +48,7 @@ public class ModelViewElement<T extends GuiScreen> extends Element<T> {
     @Override
     public void render(float mouseX, float mouseY, float partialTicks) {
         this.startScissor();
-        ScaledResolution resolution = new ScaledResolution(this.getGUI().mc);
+        ScaledResolution resolution = new ScaledResolution(ClientProxy.MINECRAFT);
         GlStateManager.pushMatrix();
         GlStateManager.disableCull();
         GlStateManager.enableDepth();
@@ -65,6 +66,7 @@ public class ModelViewElement<T extends GuiScreen> extends Element<T> {
         GlStateManager.clearColor((float) (this.backgroundColour >> 16 & 0xFF) / 255.0F, (float) (this.backgroundColour >> 8 & 0xFF) / 255.0F, (float) (this.backgroundColour & 0xFF) / 255.0F, 1.0F);
         GlStateManager.enableLighting();
         RenderHelper.enableGUIStandardItemLighting();
+        GlStateManager.translate((this.getPosX() * 0.15) / resolution.getScaleFactor(), (this.getPosY() * 0.15) / resolution.getScaleFactor(), 0.0F);
         GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT);
         GlStateManager.disableTexture2D();
         GlStateManager.translate(0.0F, -2.0F, -10.0F);

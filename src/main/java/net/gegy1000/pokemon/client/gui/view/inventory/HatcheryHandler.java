@@ -6,17 +6,15 @@ import com.pokegoapi.api.inventory.EggIncubator;
 import com.pokegoapi.api.inventory.Hatchery;
 import com.pokegoapi.api.inventory.Inventories;
 import com.pokegoapi.api.pokemon.EggPokemon;
-import net.gegy1000.pokemon.PokemonGO;
 import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
-import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.ilexiconn.llibrary.LLibrary;
-import net.ilexiconn.llibrary.client.gui.element.ElementHandler;
+import net.ilexiconn.llibrary.client.ClientProxy;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 
@@ -49,6 +47,11 @@ public class HatcheryHandler extends InventoryHandler {
                     this.mc.getTextureManager().bindTexture(PokemonGUI.EGG_TEXTURE);
                     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                     this.drawTexturedModalRect(slot.getX() + 3, slot.getY() + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
+                    this.fontRenderer.drawString((int) egg.getEggKmWalkedTarget() + "km", (int) slot.getX() + 1, (int) slot.getY() + 3 + tileRenderSize - 11, LLibrary.CONFIG.getTextColor(), false);
+                    if (egg.isIncubate()) {
+                        this.drawRectangle(slot.getX() + 1, slot.getY() + 1, tileRenderSize - 2, 4, LLibrary.CONFIG.getPrimaryColor());
+                        this.drawRectangle(slot.getX() + 2, slot.getY() + 2, egg.getEggKmWalked() * (tileRenderSize - 4) / egg.getEggKmWalkedTarget(), 2, 0xFF4AD33C);
+                    }
                     return null;
                 }
                 index++;
@@ -87,7 +90,7 @@ public class HatcheryHandler extends InventoryHandler {
                     incubators.add(incubator);
                 }
             }
-            ScaledResolution resolution = new ScaledResolution(this.getGUI().mc);
+            ScaledResolution resolution = new ScaledResolution(ClientProxy.MINECRAFT);
             slotHandler.click(slot -> {
                 int index = 0;
                 for (EggPokemon egg : eggs) {
@@ -102,9 +105,9 @@ public class HatcheryHandler extends InventoryHandler {
                                     String usesRemainingString = String.valueOf(usesRemaining);
                                     if (usesRemaining <= 0) {
                                         usesRemainingString = "∞";
-                                        this.getGUI().mc.getTextureManager().bindTexture(PokemonHandler.getTexture(ItemIdOuterClass.ItemId.ITEM_INCUBATOR_BASIC_UNLIMITED));
+                                        ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(ItemIdOuterClass.ItemId.ITEM_INCUBATOR_BASIC_UNLIMITED));
                                     } else {
-                                        this.getGUI().mc.getTextureManager().bindTexture(PokemonHandler.getTexture(ItemIdOuterClass.ItemId.ITEM_INCUBATOR_BASIC));
+                                        ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(ItemIdOuterClass.ItemId.ITEM_INCUBATOR_BASIC));
                                     }
                                     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                                     this.drawTexturedModalRect(hatcherySlot.getX(), hatcherySlot.getY(), 0.0F, 0.0F, 1.0F, 1.0F, tileSize - 2, tileSize - 2);
@@ -138,7 +141,7 @@ public class HatcheryHandler extends InventoryHandler {
                                     EggIncubator incubator = incubators.get(hatcherySlot.getIndex());
                                     try {
                                         if (egg.incubate(incubator) == UseItemEggIncubatorResponseOuterClass.UseItemEggIncubatorResponse.Result.SUCCESS) {
-                                            ElementHandler.INSTANCE.removeElement(this.getGUI(), window);
+                                            this.getGUI().removeElement(window);
                                         }
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -147,7 +150,7 @@ public class HatcheryHandler extends InventoryHandler {
                                 }, incubators.size());
                                 return false;
                             }).withParent(window);
-                            ElementHandler.INSTANCE.addElement(this.getGUI(), window);
+                            this.getGUI().addElement(window);
                             return true;
                         }
                     }

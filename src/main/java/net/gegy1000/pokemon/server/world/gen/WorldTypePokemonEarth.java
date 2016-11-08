@@ -1,7 +1,6 @@
 package net.gegy1000.pokemon.server.world.gen;
 
 import net.gegy1000.earth.server.world.gen.BiomeProviderEarth;
-import net.gegy1000.earth.server.world.gen.ChunkGeneratorEarth;
 import net.gegy1000.earth.server.world.gen.WorldTypeEarth;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeProvider;

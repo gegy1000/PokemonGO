@@ -4,7 +4,7 @@ import POGOProtos.Enums.PokemonIdOuterClass;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
 import net.gegy1000.pokemon.client.renderer.model.DefaultPokemonModel;
 import net.gegy1000.pokemon.client.renderer.pokemon.PokemonRenderer;
-import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.minecraft.client.model.ModelBase;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -28,7 +28,7 @@ public class RenderHandler {
         //TODO Add custom models and textures here
         for (PokemonIdOuterClass.PokemonId pokemon : PokemonIdOuterClass.PokemonId.values()) {
             POKEMON_TEXTURES.putIfAbsent(pokemon, () -> {
-                AdvancedDynamicTexture texture = PokemonHandler.getTexture(pokemon);
+                AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon);
                 if (texture != null) {
                     texture.bind();
                     return true;

@@ -28,13 +28,13 @@ repositories {
 }
 
 dependencies {
-    compile "net.ilexiconn:llibrary:$llibrary_version-1.9.4:dev"
+    compile "net.ilexiconn:llibrary:$llibrary_version-1.10.2:dev"
 }
 
 minecraft {
-    version = "1976"
+    version = "1.10.2-12.18.2.2099"
     runDir = "minecraft"
-    mappings = "snapshot_20160518"
+    mappings = "snapshot_20161015"
 }
 
 processResources {
