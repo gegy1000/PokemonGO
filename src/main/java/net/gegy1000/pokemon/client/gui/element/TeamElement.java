@@ -12,8 +12,8 @@ import java.util.function.Function;
 
 @SideOnly(Side.CLIENT)
 public class TeamElement<T extends IElementGUI> extends Element<T> {
-    private PokemonGUI.Team team;
-    private Function<PokemonGUI.Team, Void> function;
+    private final PokemonGUI.Team team;
+    private final Function<PokemonGUI.Team, Void> function;
 
     public TeamElement(T gui, float posX, float posY, int width, int height, PokemonGUI.Team team, Function<PokemonGUI.Team, Void> function) {
         super(gui, posX, posY, width, height);

@@ -6,8 +6,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public abstract class RenderedPokemon {
-    private boolean shouldRenderName;
-    private boolean shouldFacePlayer;
+    private final boolean shouldRenderName;
+    private final boolean shouldFacePlayer;
 
     public RenderedPokemon(boolean shouldRenderName, boolean shouldFacePlayer) {
         this.shouldRenderName = shouldRenderName;

@@ -7,8 +7,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class CatchableRenderedPokemon extends RenderedPokemon {
-    private World world;
-    private CatchablePokemon pokemon;
+    private final World world;
+    private final CatchablePokemon pokemon;
 
     public CatchableRenderedPokemon(World world, CatchablePokemon pokemon, boolean shouldRenderName, boolean shouldFacePlayer) {
         super(shouldRenderName, shouldFacePlayer);

@@ -11,6 +11,7 @@ import com.pokegoapi.api.pokemon.PokemonMoveMeta;
 import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
+import net.gegy1000.pokemon.PokemonGO;
 import net.gegy1000.pokemon.client.gui.element.ModelViewElement;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
 import net.gegy1000.pokemon.client.renderer.pokemon.GymRenderedPokemon;
@@ -27,8 +28,8 @@ import java.io.IOException;
 
 @SideOnly(Side.CLIENT)
 public class GymAttackGUI extends PokemonGUI {
-    private Gym gym;
-    private Pokemon[] team;
+    private final Gym gym;
+    private final Pokemon[] team;
     private GymBattle battle;
     private String name = "Unnamed";
     private long lastAttackTime;
@@ -46,7 +47,7 @@ public class GymAttackGUI extends PokemonGUI {
     public GymAttackGUI(Gym gym, Pokemon[] team) {
         this.gym = gym;
         this.team = team;
-        new Thread(() -> {
+        PokemonHandler.addTask(() -> {
             try {
                 PokemonHandler.API.getInventories().updateInventories(false);
                 GymBattle battle = new GymBattle(PokemonHandler.API, this.gym, this.team);
@@ -56,7 +57,8 @@ public class GymAttackGUI extends PokemonGUI {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+            return null;
+        });
         this.updateThread = new Thread(() -> {
             while (this.battle != null && this.battle.inProgress()) {
                 long time = System.currentTimeMillis();
@@ -64,15 +66,15 @@ public class GymAttackGUI extends PokemonGUI {
                     this.lastAttackTime = time;
                     try {
                         this.battle.sendQueuedActions();
-                        if (!this.battle.inProgress()) {
-                            System.out.println("Battle ended with state " + this.battle.getState());
-                            //TODO Add defeat / victory window
-                        }
                         this.updateRenderedPokemon();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
+            }
+            if (this.battle != null) {
+                PokemonGO.LOGGER.info("Battle ended with state " + this.battle.getState());
+                //TODO Add defeat / victory window
             }
         });
         try {
@@ -89,15 +91,15 @@ public class GymAttackGUI extends PokemonGUI {
         this.addElement(this.viewElement = new ModelViewElement<>(this, 0.0F, 46.0F, this.width, this.height - 46, (view) -> {
             GlStateManager.scale(1.0F, -1.0F, 1.0F);
             float partialTicks = LLibrary.PROXY.getPartialTicks();
-            RenderHandler.GYM_RENDERER.render(this.gym, 0.0, -8.0, 0.0, partialTicks);
+            RenderHandler.GYM_RENDERER.render(this.gym, 0.0, -9.2, 0.0, partialTicks);
             GlStateManager.enableTexture2D();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.scale(0.25F, 0.25F, 0.25F);
             if (this.activeAttackerRender != null) {
-                RenderHandler.POKEMON_RENDERER.render(this.activeAttackerRender, 2.0, -8.4, 5.0, partialTicks);
+                RenderHandler.POKEMON_RENDERER.render(this.activeAttackerRender, 2.0, -14.1, 5.0, partialTicks);
             }
             if (this.activeDefenderRender != null) {
-                RenderHandler.POKEMON_RENDERER.render(this.activeDefenderRender, -9.0, -8.4, 5.0, partialTicks);
+                RenderHandler.POKEMON_RENDERER.render(this.activeDefenderRender, -9.0, -14.1, 5.0, partialTicks);
             }
             GlStateManager.disableLighting();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -116,10 +118,14 @@ public class GymAttackGUI extends PokemonGUI {
             String titleString = I18n.translateToLocal("pokemon.attacking_gym.name") + " - " + this.name;
             this.fontRendererObj.drawString(titleString, this.width / 2 - this.fontRendererObj.getStringWidth(titleString) / 2, 6, textColor, false);
 
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
             Team gymTeam = new Team(this.gym.getOwnedByTeam());
             this.mc.getTextureManager().bindTexture(gymTeam.getTeamTexture());
             this.drawTexturedModalRect(2, 2, 0, 0, 32, 32, 32, 32, 1.0, 1.0);
             this.fontRendererObj.drawString(gymTeam.getTeamName(), 40, 15, textColor);
+
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
             Team team = new Team(PokemonHandler.API.getPlayerProfile().getPlayerData().getTeam());
             this.mc.getTextureManager().bindTexture(team.getTeamTexture());
@@ -185,7 +191,7 @@ public class GymAttackGUI extends PokemonGUI {
             builder.setTargetIndex(-1);
             this.battle.addActionToQueue(builder);
             this.nextClick = time + totalAttackDuration;
-            System.out.println("CLICK");
+            PokemonGO.LOGGER.info("CLICK");
         }
         this.clicked = false;
     }
@@ -209,14 +215,15 @@ public class GymAttackGUI extends PokemonGUI {
     public void onGuiClosed() {
         super.onGuiClosed();
         this.exit();
-        new Thread(() -> {
+        PokemonHandler.addTask(() -> {
             try {
-                PokemonHandler.API.getInventories().updateInventories(false);
+                PokemonHandler.API.getInventories().updateInventories();
                 PokemonHandler.API.getPlayerProfile().updateProfile();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+            return null;
+        });
     }
 
     private void exit() {

@@ -46,7 +46,7 @@ public class CharacterViewHandler extends ViewHandler {
     public void initView() {
         this.getGUI().addElement(this.name = new InputElement<>(this.getGUI(), 4.0F, 22.0F, 100, PokemonHandler.getUsername(), (input) -> {
             if (!Objects.equals(PokemonHandler.getUsername(), this.name.getText())) {
-                new Thread(() -> {
+                PokemonHandler.addTask(() -> {
                     try {
                         ClaimCodenameResponseOuterClass.ClaimCodenameResponse.Status status = PokemonRequestHandler.setUsername(this.name.getText());
                         String statusWindowTitle = null;
@@ -85,7 +85,8 @@ public class CharacterViewHandler extends ViewHandler {
                         }
                     } catch (Exception e) {
                     }
-                }).start();
+                    return null;
+                });
             }
         }));
     }

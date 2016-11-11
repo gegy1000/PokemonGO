@@ -10,8 +10,8 @@ import net.minecraftforge.fml.client.config.GuiUtils;
 import java.util.List;
 
 public abstract class InventoryHandler {
-    protected Minecraft mc = Minecraft.getMinecraft();
-    protected FontRenderer fontRenderer = this.mc.fontRendererObj;
+    protected final Minecraft mc = Minecraft.getMinecraft();
+    protected final FontRenderer fontRenderer = this.mc.fontRendererObj;
     private PokemonViewGUI gui;
     private InventoryViewHandler inventoryView;
 

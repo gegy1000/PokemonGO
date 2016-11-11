@@ -30,9 +30,9 @@ public class PasswordInputElement<T extends IElementGUI> extends Element<T> {
     private int selectionEnd;
     private int cursorCounter;
     private boolean editable = true;
-    private Function<Integer, Boolean> allowKey;
-    private Consumer<PasswordInputElement<T>> onEnter;
-    private FontRenderer passwordFontRenderer;
+    private final Function<Integer, Boolean> allowKey;
+    private final Consumer<PasswordInputElement<T>> onEnter;
+    private final FontRenderer passwordFontRenderer;
 
     public PasswordInputElement(T gui, String text, float posX, float posY, int width, Consumer<PasswordInputElement<T>> onEnter) {
         this(gui, text, posX, posY, width, true, onEnter, (key) -> true);

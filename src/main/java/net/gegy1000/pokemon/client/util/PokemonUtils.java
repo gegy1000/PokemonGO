@@ -40,29 +40,42 @@ public class PokemonUtils {
             return null;
         });
         ITEM_ACTIONS.put(ItemIdOuterClass.ItemId.ITEM_INCENSE_ORDINARY, (gui) -> {
-            PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_ORDINARY);
+            PokemonHandler.addTask(() -> {
+                PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_ORDINARY);
+                return null;
+            });
             return null;
         });
         ITEM_ACTIONS.put(ItemIdOuterClass.ItemId.ITEM_INCENSE_COOL, (gui) -> {
-            PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_COOL);
+            PokemonHandler.addTask(() -> {
+                PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_COOL);
+                return null;
+            });
             return null;
         });
         ITEM_ACTIONS.put(ItemIdOuterClass.ItemId.ITEM_INCENSE_FLORAL, (gui) -> {
-            PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_FLORAL);
+            PokemonHandler.addTask(() -> {
+                PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_FLORAL);
+                return null;
+            });
             return null;
         });
         ITEM_ACTIONS.put(ItemIdOuterClass.ItemId.ITEM_INCENSE_SPICY, (gui) -> {
-            PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_SPICY);
+            PokemonHandler.addTask(() -> {
+                PokemonRequestHandler.useIncense(ItemIdOuterClass.ItemId.ITEM_INCENSE_SPICY);
+                return null;
+            });
             return null;
         });
         ITEM_ACTIONS.put(ItemIdOuterClass.ItemId.ITEM_LUCKY_EGG, (gui) -> {
-            new Thread(() -> {
+            PokemonHandler.addTask(() -> {
                 try {
                     PokemonHandler.API.getInventories().getItemBag().useLuckyEgg();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }).start();
+                return null;
+            });
             return null;
         });
     }

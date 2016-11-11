@@ -19,6 +19,7 @@ public class PokemonRefreshHandler {
             PokemonMapHandler.clear();
         });
         refreshThread.setName("Pokemon Refresh Thread");
+        refreshThread.setDaemon(true);
         refreshThread.start();
     }
 }

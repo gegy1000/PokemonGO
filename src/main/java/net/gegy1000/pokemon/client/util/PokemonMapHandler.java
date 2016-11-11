@@ -2,12 +2,12 @@ package net.gegy1000.pokemon.client.util;
 
 import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.map.Map;
-import com.pokegoapi.api.map.Point;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import com.pokegoapi.api.map.pokemon.NearbyPokemon;
 import com.pokegoapi.api.settings.MapSettings;
 import com.pokegoapi.api.settings.Settings;
+import net.gegy1000.pokemon.PokemonGO;
 import net.gegy1000.pokemon.client.renderer.pokemon.CatchableRenderedPokemon;
 import net.minecraft.client.Minecraft;
 
@@ -79,7 +79,6 @@ public class PokemonMapHandler {
                 if (mapSettings.getMinRefresh() > 0 && time - lastMapUpdate > mapSettings.getMinRefresh()) {
                     lastMapUpdate = time;
                     Map map = PokemonHandler.API.getMap();
-                    List<Point> spawnpoints = map.getSpawnPoints();
                     List<NearbyPokemon> nearbyPokemon = map.getNearbyPokemon();
                     synchronized (NEARBY_POKEMONS) {
                         NEARBY_POKEMONS.clear();
@@ -104,7 +103,7 @@ public class PokemonMapHandler {
                         POKESTOPS.clear();
                         POKESTOPS.addAll(pokestops);
                     }
-                    System.out.println("Detected " + pokestops.size() + " Pokestops, " + gyms.size() + " Gyms, " + catchablePokemon.size() + " Pokemon, and " + nearbyPokemon.size() + " nearby!");
+                    PokemonGO.LOGGER.info("Detected " + pokestops.size() + " Pokestops, " + gyms.size() + " Gyms, " + catchablePokemon.size() + " Pokemon, and " + nearbyPokemon.size() + " nearby!");
                 }
             } catch (Exception e) {
                 e.printStackTrace();

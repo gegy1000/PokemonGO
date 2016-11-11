@@ -16,7 +16,7 @@ import java.util.Locale;
 
 @SideOnly(Side.CLIENT)
 public class StatisticsViewHandler extends ViewHandler {
-    private List<String> statistics = new LinkedList<>();
+    private final List<String> statistics = new LinkedList<>();
 
     public StatisticsViewHandler(PokemonViewGUI gui) {
         super(gui);

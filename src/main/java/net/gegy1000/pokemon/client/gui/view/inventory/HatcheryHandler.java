@@ -1,7 +1,6 @@
 package net.gegy1000.pokemon.client.gui.view.inventory;
 
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
-import POGOProtos.Networking.Responses.UseItemEggIncubatorResponseOuterClass;
 import com.pokegoapi.api.inventory.EggIncubator;
 import com.pokegoapi.api.inventory.Hatchery;
 import com.pokegoapi.api.inventory.Inventories;
@@ -10,6 +9,7 @@ import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
+import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.ClientProxy;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
@@ -138,14 +138,16 @@ public class HatcheryHandler extends InventoryHandler {
                                 return null;
                             }, (hatcherySlotHandler) -> {
                                 hatcherySlotHandler.click((hatcherySlot) -> {
-                                    EggIncubator incubator = incubators.get(hatcherySlot.getIndex());
-                                    try {
-                                        if (egg.incubate(incubator) == UseItemEggIncubatorResponseOuterClass.UseItemEggIncubatorResponse.Result.SUCCESS) {
-                                            this.getGUI().removeElement(window);
+                                    PokemonHandler.addTask(() -> {
+                                        EggIncubator incubator = incubators.get(hatcherySlot.getIndex());
+                                        try {
+                                            egg.incubate(incubator);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
                                         }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                                        return null;
+                                    });
+                                    this.getGUI().removeElement(window);
                                     return true;
                                 }, incubators.size());
                                 return false;

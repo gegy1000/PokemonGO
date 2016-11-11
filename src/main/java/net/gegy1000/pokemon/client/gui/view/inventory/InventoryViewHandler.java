@@ -46,13 +46,14 @@ public class InventoryViewHandler extends ViewHandler {
             this.selectedInventoryType.getHandler().init(this.getGUI(), this);
         }
         if (this.inventoriesList == null || this.inventoryGrid == null) {
-            new Thread(() -> {
+            PokemonHandler.addTask(() -> {
                 try {
                     PokemonHandler.API.getInventories().updateInventories();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }).start();
+                return null;
+            });
             List<String> inventoryTypes = new ArrayList<>();
             for (InventoryType type : InventoryType.values()) {
                 inventoryTypes.add(type.getName());

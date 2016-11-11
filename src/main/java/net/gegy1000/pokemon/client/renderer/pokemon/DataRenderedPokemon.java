@@ -5,9 +5,9 @@ import POGOProtos.Enums.PokemonIdOuterClass;
 import net.minecraft.world.World;
 
 public class DataRenderedPokemon extends RenderedPokemon {
-    private World world;
-    private PokemonDataOuterClass.PokemonData data;
-    private int light;
+    private final World world;
+    private final PokemonDataOuterClass.PokemonData data;
+    private final int light;
 
     public DataRenderedPokemon(World world, PokemonDataOuterClass.PokemonData data, int light, boolean shouldRenderName, boolean shouldFacePlayer) {
         super(shouldRenderName, shouldFacePlayer);

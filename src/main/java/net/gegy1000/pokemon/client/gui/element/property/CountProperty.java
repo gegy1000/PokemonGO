@@ -6,10 +6,11 @@ import net.ilexiconn.llibrary.server.property.IStringProperty;
 import java.util.function.Consumer;
 
 public class CountProperty implements IFloatRangeProperty, IStringProperty {
+    private final Consumer<Integer> submit;
+    private final int min;
+    private final int max;
+
     private int value;
-    private Consumer<Integer> submit;
-    private int min;
-    private int max;
 
     public CountProperty(Consumer<Integer> submit, int min, int max, int value) {
         this.submit = submit;

@@ -107,7 +107,7 @@ public class BackpackHandler extends InventoryHandler {
         slider.getValueInput().writeText(String.valueOf(1));
         new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.remove.name"), 41.0F, 15.0F, 58, 23, (button) -> {
             int value = slider.getValueInput().getText().length() > 0 ? Integer.parseInt(slider.getValueInput().getText()) : 0;
-            if (value > 0 && value < item.getCount()) {
+            if (value > 0 && value <= item.getCount()) {
                 try {
                     bag.removeItem(item.getItemId(), value);
                 } catch (Exception e) {

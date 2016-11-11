@@ -10,9 +10,9 @@ import java.util.List;
 
 @SideOnly(Side.CLIENT)
 public abstract class ViewHandler {
-    protected Minecraft mc = Minecraft.getMinecraft();
-    protected FontRenderer fontRenderer = this.mc.fontRendererObj;
-    private PokemonViewGUI gui;
+    protected final Minecraft mc = Minecraft.getMinecraft();
+    protected final FontRenderer fontRenderer = this.mc.fontRendererObj;
+    private final PokemonViewGUI gui;
 
     public ViewHandler(PokemonViewGUI gui) {
         this.gui = gui;

@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 @SideOnly(Side.CLIENT)
 public class DrawableElement<T extends IElementGUI> extends Element<T> {
-    private Function<Vector2f, Void> renderFunction;
+    private final Function<Vector2f, Void> renderFunction;
 
     public DrawableElement(T gui, float posX, float posY, int width, int height, Function<Vector2f, Void> renderFunction) {
         super(gui, posX, posY, width, height);

@@ -14,10 +14,10 @@ import javax.vecmath.Vector2f;
 import java.util.function.Function;
 
 public class ModelViewElement<T extends IElementGUI> extends Element<T> {
-    private Function<ModelViewElement, Void> renderFunction;
-    private Function<Vector2f, Boolean> clickFunction;
+    private final Function<ModelViewElement, Void> renderFunction;
+    private final Function<Vector2f, Boolean> clickFunction;
 
-    private int backgroundColour;
+    private final int backgroundColour;
 
     private float zoom;
     private float zoomVelocity;
@@ -34,14 +34,14 @@ public class ModelViewElement<T extends IElementGUI> extends Element<T> {
     private float prevMouseX;
     private float prevMouseY;
 
-    private boolean lookMouse;
+    private final boolean canDragMouse;
     private boolean dragged;
 
-    public ModelViewElement(T gui, float posX, float posY, int width, int height, Function<ModelViewElement, Void> renderFunction, Function<Vector2f, Boolean> clickFunction, int backgroundColour, boolean lookMouse) {
+    public ModelViewElement(T gui, float posX, float posY, int width, int height, Function<ModelViewElement, Void> renderFunction, Function<Vector2f, Boolean> clickFunction, int backgroundColour, boolean canDragMouse) {
         super(gui, posX, posY, width, height);
         this.renderFunction = renderFunction;
         this.clickFunction = clickFunction;
-        this.lookMouse = lookMouse;
+        this.canDragMouse = canDragMouse;
         this.backgroundColour = backgroundColour;
     }
 
@@ -110,7 +110,7 @@ public class ModelViewElement<T extends IElementGUI> extends Element<T> {
 
     @Override
     public boolean mouseDragged(float mouseX, float mouseY, int button, long timeSinceClick) {
-        if (this.lookMouse) {
+        if (this.canDragMouse) {
             if (this.isSelected(mouseX, mouseY)) {
                 float xMovement = mouseX - this.prevMouseX;
                 float yMovement = mouseY - this.prevMouseY;
@@ -144,7 +144,7 @@ public class ModelViewElement<T extends IElementGUI> extends Element<T> {
 
     @Override
     public boolean mouseScrolled(float mouseX, float mouseY, int amount) {
-        if (this.lookMouse) {
+        if (this.canDragMouse) {
             this.zoomVelocity += (amount / 120.0F) * 0.05F;
         }
         return true;

@@ -82,9 +82,9 @@ public abstract class PokemonGUI extends ElementGUI {
     }
 
     public static class Team {
-        private TeamColorOuterClass.TeamColor teamColor;
+        private final TeamColorOuterClass.TeamColor teamColor;
         private ResourceLocation teamTexture;
-        private String teamName;
+        private final String teamName;
 
         public Team(TeamColorOuterClass.TeamColor team) {
             this.teamColor = team;

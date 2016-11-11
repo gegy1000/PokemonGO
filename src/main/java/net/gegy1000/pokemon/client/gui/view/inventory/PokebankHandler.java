@@ -116,21 +116,25 @@ public class PokebankHandler extends InventoryHandler {
             boolean canPowerUp = canPowerUpCandy && canPowerUpStardust;
             int textColor = LLibrary.CONFIG.getTextColor();
             int fontHeight = (int) (this.fontRenderer.FONT_HEIGHT / 2.5F * scaleFactor);
-            new InputElement<>(this.getGUI(), centerX - nameWidth / 2, iconSize + 26, nameWidth, nickname != null && nickname.length() > 0 ? nickname : displayName, (input) -> new Thread(() -> {
-                try {
-                    if (!input.getText().equals(nickname)) {
-                        String newNickname = input.getText().equals(displayName) ? "" : input.getText();
-                        if (pokemon.renamePokemon(newNickname) == NicknamePokemonResponseOuterClass.NicknamePokemonResponse.Result.SUCCESS) {
-                            pokemon.setProto(pokemon.getProto().toBuilder().mergeFrom(PokemonDataOuterClass.PokemonData.newBuilder().setNickname(newNickname).build()).build());
-                        } else {
-                            input.clearText();
-                            input.writeText(pokemon.getNickname() == null || pokemon.getNickname().length() == 0 ? displayName : pokemon.getNickname());
+            new InputElement<>(this.getGUI(), centerX - nameWidth / 2, iconSize + 26, nameWidth, nickname != null && nickname.length() > 0 ? nickname : displayName, (input) -> {
+                PokemonHandler.addTask(() -> {
+                    try {
+                        if (!input.getText().equals(nickname)) {
+                            String newNickname = input.getText().equals(displayName) ? "" : input.getText();
+                            if (pokemon.renamePokemon(newNickname) == NicknamePokemonResponseOuterClass.NicknamePokemonResponse.Result.SUCCESS) {
+                                pokemon.setProto(pokemon.getProto().toBuilder().mergeFrom(PokemonDataOuterClass.PokemonData.newBuilder().setNickname(newNickname).build()).build());
+                            } else {
+                                input.clearText();
+                                String newName = pokemon.getNickname() == null || pokemon.getNickname().length() == 0 ? displayName : pokemon.getNickname();
+                                input.writeText(newName);
+                            }
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start()).withParent(window);
+                    return null;
+                });
+            }).withParent(window);
             new DrawableElement<>(this.getGUI(), 0.0F, 14.0F, scaleFactor * 100, scaleFactor * 100 - 14, (mousePosition) -> {
                 try {
                     DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
@@ -188,7 +192,7 @@ public class PokebankHandler extends InventoryHandler {
                 return null;
             }).withParent(window);
             new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.release.name"), 1.0F, scaleFactor * 100 - 21, scaleFactor * 100 - 2, 20, (button) -> {
-                new Thread(() -> {
+                PokemonHandler.addTask(() -> {
                     try {
                         this.getGUI().removeElement(window);
                         pokemon.transferPokemon();
@@ -197,12 +201,13 @@ public class PokebankHandler extends InventoryHandler {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }).start();
+                    return null;
+                });
                 return true;
             }).withParent(window);
             new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.power_up.name"), buttonOffset / 2 + 1, buttonY + 15, scaleFactor * 50 - buttonOffset / 2, buttonHeight - 2, (button) -> {
                 if (canPowerUp) {
-                    new Thread(() -> {
+                    PokemonHandler.addTask(() -> {
                         try {
                             pokemon.powerUp();
                             PokemonHandler.API.getPlayerProfile().updateProfile();
@@ -210,14 +215,15 @@ public class PokebankHandler extends InventoryHandler {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }).start();
+                        return null;
+                    });
                     return true;
                 }
                 return false;
             }).withParent(window).withColorScheme(canPowerUp ? Element.DEFAULT : PokemonGUI.THEME_DISABLED).setEnabled(canPowerUp);
             new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.evolve.name"), buttonOffset / 2 + 1, buttonY + buttonHeight + 19, scaleFactor * 50 - buttonOffset / 2, buttonHeight - 2, (button) -> {
                 if (canEvolve) {
-                    new Thread(() -> {
+                    PokemonHandler.addTask(() -> {
                         try {
                             EvolutionResult result = pokemon.evolve();
                             if (result.isSuccessful()) {
@@ -229,7 +235,8 @@ public class PokebankHandler extends InventoryHandler {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }).start();
+                        return null;
+                    });
                     return true;
                 }
                 return false;

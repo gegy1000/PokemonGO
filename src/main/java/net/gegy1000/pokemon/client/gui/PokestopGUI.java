@@ -49,14 +49,15 @@ public class PokestopGUI extends PokemonGUI {
     public PokestopGUI(Pokestop pokestop) {
         this.pokestop = pokestop;
         try {
-            this.details = pokestop.getDetails();
-            new Thread(() -> {
+            PokemonHandler.addTask(() -> {
                 try {
+                    this.details = pokestop.getDetails();
                     this.iconImage = ImageIO.read(new URL(this.details.getImageUrl().get(0)).openStream());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }).start();
+                return null;
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,7 +68,7 @@ public class PokestopGUI extends PokemonGUI {
         ScaledResolution resolution = new ScaledResolution(this.mc);
         this.addElement(this.lootButton = new ButtonElement<>(this, I18n.translateToLocal("gui.loot.name"), 0, this.height - 36, this.width, 18, (button) -> {
             if (this.pokestop.canLoot()) {
-                new Thread(() -> {
+                PokemonHandler.addTask(() -> {
                     try {
                         this.result = this.pokestop.loot();
                         if (this.result.getResult() == FortSearchResponseOuterClass.FortSearchResponse.Result.INVENTORY_FULL) {
@@ -98,7 +99,8 @@ public class PokestopGUI extends PokemonGUI {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }).start();
+                    return null;
+                });
                 return true;
             }
             return false;

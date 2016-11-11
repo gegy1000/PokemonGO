@@ -1556,6 +1556,12 @@ public class GymModel extends AdvancedModelBase {
         } else {
             this.shieldBase.rotateAngleY += ticks * 0.05F;
         }
+        if (isAttacking) {
+            this.ShieldBack.rotationPointY -= 15;
+            this.ShieldFront.rotationPointY -= 15;
+            this.ShieldLeft.rotationPointY -= 15;
+            this.ShieldRight.rotationPointY -= 15;
+        }
     }
 
     private void setRotateAngle(AdvancedModelRenderer AdvancedModelRenderer, float x, float y, float z) {

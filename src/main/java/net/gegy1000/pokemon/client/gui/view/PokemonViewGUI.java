@@ -4,15 +4,13 @@ import POGOProtos.Enums.TeamColorOuterClass;
 import POGOProtos.Networking.Requests.Messages.SetPlayerTeamMessageOuterClass;
 import POGOProtos.Networking.Requests.RequestTypeOuterClass;
 import POGOProtos.Networking.Responses.SetPlayerTeamResponseOuterClass;
-import com.google.protobuf.ByteString;
 import com.pokegoapi.api.player.PlayerProfile;
-import com.pokegoapi.main.AsyncServerRequest;
-import com.pokegoapi.util.AsyncHelper;
 import net.gegy1000.pokemon.client.gui.LoginGUI;
 import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.TeamElement;
 import net.gegy1000.pokemon.client.gui.view.inventory.InventoryViewHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
+import net.gegy1000.pokemon.client.util.PokemonRequestHandler;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
 import net.ilexiconn.llibrary.client.gui.element.LabelElement;
@@ -174,19 +172,18 @@ public class PokemonViewGUI extends PokemonGUI {
         }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
         new ButtonElement<>(this, I18n.translateToLocal("gui.okay.name"), 118.0F, 31.0F, 116, 15, (button) -> {
             this.removeElement(confirmWindow);
-            new Thread(() -> {
+            PokemonHandler.addTask(() -> {
                 try {
                     SetPlayerTeamMessageOuterClass.SetPlayerTeamMessage message = SetPlayerTeamMessageOuterClass.SetPlayerTeamMessage.newBuilder().setTeam(team.toTeamColor()).build();
-                    AsyncServerRequest request = new AsyncServerRequest(RequestTypeOuterClass.RequestType.SET_PLAYER_TEAM, message);
-                    ByteString byteString = AsyncHelper.toBlocking(PokemonHandler.API.getRequestHandler().sendAsyncServerRequests(request));
-                    SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse response = SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse.parseFrom(byteString);
+                    SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse response = PokemonRequestHandler.request(RequestTypeOuterClass.RequestType.SET_PLAYER_TEAM, message, SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse.class);
                     if (response.getStatus() == SetPlayerTeamResponseOuterClass.SetPlayerTeamResponse.Status.SUCCESS) {
                         PokemonHandler.API.getPlayerProfile().updateProfile();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }).start();
+                return null;
+            });
             return true;
         }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
         this.addElement(confirmWindow);

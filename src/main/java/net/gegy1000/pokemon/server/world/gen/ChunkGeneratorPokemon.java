@@ -28,13 +28,12 @@ public class ChunkGeneratorPokemon extends ChunkGeneratorEarth {
         long i1 = this.random.nextLong() / 2L * 2L + 1L;
         long j1 = this.random.nextLong() / 2L * 2L + 1L;
         this.random.setSeed((long) chunkX * i1 + (long) chunkZ * j1 ^ this.world.getSeed());
-        boolean hasVillageGenerated = false;
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(this, this.world, this.random, chunkX, chunkZ, hasVillageGenerated));
-        if (TerrainGen.populate(this, this.world, this.random, chunkX, chunkZ, hasVillageGenerated, PopulateChunkEvent.Populate.EventType.ANIMALS)) {
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(this, this.world, this.random, chunkX, chunkZ, false));
+        if (TerrainGen.populate(this, this.world, this.random, chunkX, chunkZ, false, PopulateChunkEvent.Populate.EventType.ANIMALS)) {
             WorldEntitySpawner.performWorldGenSpawning(this.world, biome, x + 8, z + 8, 16, 16, this.random);
         }
         pos = pos.add(8, 0, 8);
-        boolean freeze = TerrainGen.populate(this, this.world, this.random, chunkX, chunkZ, hasVillageGenerated, PopulateChunkEvent.Populate.EventType.ICE);
+        boolean freeze = TerrainGen.populate(this, this.world, this.random, chunkX, chunkZ, false, PopulateChunkEvent.Populate.EventType.ICE);
         for (int xOffset = 0; freeze && xOffset < 16; ++xOffset) {
             for (int zOffset = 0; zOffset < 16; ++zOffset) {
                 BlockPos top = this.world.getPrecipitationHeight(pos.add(xOffset, 0, zOffset));
@@ -47,7 +46,7 @@ public class ChunkGeneratorPokemon extends ChunkGeneratorEarth {
                 }
             }
         }
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(this, this.world, this.random, chunkX, chunkZ, hasVillageGenerated));
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(this, this.world, this.random, chunkX, chunkZ, false));
         BlockFalling.fallInstantly = false;
     }
 }

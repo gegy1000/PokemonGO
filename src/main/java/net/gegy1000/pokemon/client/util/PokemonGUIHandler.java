@@ -14,6 +14,7 @@ import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
@@ -29,6 +30,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class PokemonGUIHandler {
     public static final Map<ItemIdOuterClass.ItemId, ResourceLocation> ITEM_TEXTURES = new HashMap<>();
@@ -37,7 +42,25 @@ public class PokemonGUIHandler {
     public static final Map<Integer, AdvancedDynamicTexture> POKEMON_SPRITES = new HashMap<>();
     public static final Map<Integer, BufferedImage> DOWNLOADED_POKEMON_SPRITES = new HashMap<>();
 
+    private static final Queue<FutureTask<?>> TASKS = new LinkedBlockingDeque<>();
+
     public static void onPreInit() {
+        Thread taskThread = new Thread(() -> {
+            try {
+                if (TASKS.size() > 0) {
+                    FutureTask<?> task = TASKS.poll();
+                    task.run();
+                    task.get();
+                }
+                Thread.sleep(10);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        taskThread.setName("Pokemon Sprite Downloader");
+        taskThread.setDaemon(true);
+        taskThread.start();
+
         File tempPokemonDirectory = TempFileUtil.getTempFile("pokemon/sprites");
         if (tempPokemonDirectory.exists()) {
             for (File sprite : tempPokemonDirectory.listFiles()) {
@@ -61,6 +84,10 @@ public class PokemonGUIHandler {
         }
     }
 
+    public static void addTask(Callable<?> task) {
+        TASKS.add(new FutureTask<>(task));
+    }
+
     public static void openReviveWindow(PokemonViewGUI gui, ItemIdOuterClass.ItemId item) {
         WindowElement<PokemonViewGUI> window = new WindowElement<>(gui, I18n.translateToLocal("gui.revive.name"), 200, 200);
         try {
@@ -78,6 +105,7 @@ public class PokemonGUIHandler {
                 slotHandler.draw((slot) -> {
                     Pokemon pokemon = renderPokemons.get(slot.getIndex());
                     AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon.getPokemonId());
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                     if (texture != null) {
                         texture.bind();
                         gui.drawTexturedModalRect(slot.getX(), slot.getY(), 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize, tileRenderSize);
@@ -94,7 +122,11 @@ public class PokemonGUIHandler {
                 return null;
             }, (slotHandler) -> {
                 slotHandler.click((slot) -> {
-                    new Thread(() -> PokemonRequestHandler.revive(renderPokemons.get(slot.getIndex()), item)).start();
+                    Pokemon pokemon = renderPokemons.get(slot.getIndex());
+                    PokemonHandler.addTask(() -> {
+                        PokemonRequestHandler.revive(pokemon, item);
+                        return null;
+                    });
                     gui.removeElement(window);
                     return true;
                 }, renderPokemons.size());
@@ -122,6 +154,7 @@ public class PokemonGUIHandler {
                 FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
                 slotHandler.draw((slot) -> {
                     Pokemon pokemon = renderPokemons.get(slot.getIndex());
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                     AdvancedDynamicTexture texture = PokemonGUIHandler.getTexture(pokemon.getPokemonId());
                     if (texture != null) {
                         texture.bind();
@@ -139,7 +172,11 @@ public class PokemonGUIHandler {
                 return null;
             }, (slotHandler) -> {
                 slotHandler.click((slot) -> {
-                    new Thread(() -> PokemonRequestHandler.heal(renderPokemons.get(slot.getIndex()), item)).start();
+                    Pokemon pokemon = renderPokemons.get(slot.getIndex());
+                    PokemonHandler.addTask(() -> {
+                        PokemonRequestHandler.heal(pokemon, item);
+                        return null;
+                    });
                     gui.removeElement(window);
                     return true;
                 }, renderPokemons.size());
@@ -171,13 +208,13 @@ public class PokemonGUIHandler {
             synchronized (POKEMON_SPRITES) {
                 POKEMON_SPRITES.put(number, null);
             }
-            new Thread(() -> {
+            PokemonGUIHandler.addTask(() -> {
                 URL imageURL = null;
                 try {
                     imageURL = new URL("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + number + ".png");
                     HttpsURLConnection connection = (HttpsURLConnection) imageURL.openConnection();
                     connection.setRequestMethod("GET");
-                    connection.setRequestProperty("user-agent", "Minecraft Earth-Mod/" + PokemonGO.VERSION);
+                    connection.setRequestProperty("user-agent", "MinecraftPokemonGO/" + PokemonGO.VERSION);
                     BufferedImage image = ImageIO.read(connection.getInputStream());
                     synchronized (DOWNLOADED_POKEMON_SPRITES) {
                         DOWNLOADED_POKEMON_SPRITES.put(number, image);
@@ -187,7 +224,8 @@ public class PokemonGUIHandler {
                     System.err.println("Failed to download Pokemon sprite " + number);
                     e.printStackTrace();
                 }
-            }).start();
+                return null;
+            });
             return null;
         }
     }

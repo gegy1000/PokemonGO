@@ -13,15 +13,16 @@ import POGOProtos.Networking.Responses.StartGymBattleResponseOuterClass;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.pokemon.Pokemon;
+import net.gegy1000.pokemon.PokemonGO;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GymBattle {
-    private PokemonGo api;
-    private Gym gym;
-    private Pokemon[] team;
-    private String battleId;
+    private final PokemonGo api;
+    private final Gym gym;
+    private final Pokemon[] team;
+    private String battleID;
     private boolean inProgress;
     private BattleStateOuterClass.BattleState state;
 
@@ -52,7 +53,7 @@ public class GymBattle {
         builder.setPlayerLongitude(this.api.getLongitude());
         builder.setDefendingPokemonId(this.gym.getDefendingPokemon().get(0).getId());
         this.startResponse = PokemonRequestHandler.request(RequestTypeOuterClass.RequestType.START_GYM_BATTLE, builder.build(), StartGymBattleResponseOuterClass.StartGymBattleResponse.class);
-        this.battleId = this.startResponse.getBattleId();
+        this.battleID = this.startResponse.getBattleId();
         if (this.startResponse.getResult() == StartGymBattleResponseOuterClass.StartGymBattleResponse.Result.SUCCESS) {
             this.inProgress = true;
         }
@@ -62,12 +63,12 @@ public class GymBattle {
     }
 
     public AttackGymResponseOuterClass.AttackGymResponse performActions(List<BattleActionOuterClass.BattleAction> actions) throws Exception {
-        System.out.println("Performing actions " + actions);
+        PokemonGO.LOGGER.info("Performing actions " + actions);
         AttackGymMessageOuterClass.AttackGymMessage.Builder builder = AttackGymMessageOuterClass.AttackGymMessage.newBuilder();
         builder.setPlayerLatitude(this.api.getLatitude());
         builder.setPlayerLongitude(this.api.getLongitude());
         builder.setGymId(this.gym.getId());
-        builder.setBattleId(this.battleId);
+        builder.setBattleId(this.battleID);
         builder.addAllAttackActions(actions);
         BattleActionOuterClass.BattleAction lastAction = this.getLastAction();
         if (lastAction != null) {
@@ -77,10 +78,10 @@ public class GymBattle {
         this.activeAttacker = this.lastResponse.getActiveAttacker();
         this.activeDefender = this.lastResponse.getActiveDefender();
         this.state = this.lastResponse.getBattleLog().getState();
-        this.battleId = this.lastResponse.getBattleId();
+        this.battleID = this.lastResponse.getBattleId();
         this.serverTimeOffset = this.lastResponse.getBattleLog().getServerMs() - System.currentTimeMillis();
-        System.out.println("Result: " + this.lastResponse.getResult());
-        System.out.println();
+        PokemonGO.LOGGER.info("Result: " + this.lastResponse.getResult());
+        PokemonGO.LOGGER.info("");
         if (this.state == BattleStateOuterClass.BattleState.DEFEATED || this.state == BattleStateOuterClass.BattleState.VICTORY || this.state == BattleStateOuterClass.BattleState.TIMED_OUT) {
             this.inProgress = false;
         }

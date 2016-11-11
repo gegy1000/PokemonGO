@@ -60,12 +60,10 @@ public class PokemonRequestHandler {
     }
 
     public static void useIncense(ItemIdOuterClass.ItemId item) {
-        new Thread(() -> {
-            try {
-                PokemonHandler.API.getInventories().getItemBag().useIncense(item);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        try {
+            PokemonHandler.API.getInventories().getItemBag().useIncense(item);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

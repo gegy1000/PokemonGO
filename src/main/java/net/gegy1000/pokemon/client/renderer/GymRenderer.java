@@ -48,24 +48,27 @@ public class GymRenderer extends PokemonObjectRenderer<Gym> {
         GlStateManager.translate(0.0F, -1.5F, 0.0F);
         GYM_MODEL.render(null, 0.0F, 0.0F, (MC.thePlayer.ticksExisted + ((int) (gym.getLatitude() * 2000 * gym.getLongitude()) & 0xFF)) + partialTicks, 0.0F, 0.0F, 0.0625F);
         GlStateManager.popMatrix();
-        try {
-            GlStateManager.pushMatrix();
-            GlStateManager.enableTexture2D();
-            PokemonDataOuterClass.PokemonData defending = null;
-            for (PokemonDataOuterClass.PokemonData pokemonData : gym.getDefendingPokemon()) {
-                if (defending == null || pokemonData.getCp() > defending.getCp()) {
-                    defending = pokemonData;
+        if (MC.currentScreen == null) {
+            //TODO Render Arguments
+            try {
+                GlStateManager.pushMatrix();
+                GlStateManager.enableTexture2D();
+                PokemonDataOuterClass.PokemonData defending = null;
+                for (PokemonDataOuterClass.PokemonData pokemonData : gym.getDefendingPokemon()) {
+                    if (defending == null || pokemonData.getCp() > defending.getCp()) {
+                        defending = pokemonData;
+                    }
                 }
+                if (defending != null) {
+                    RenderedPokemon renderedPokemon = new DataRenderedPokemon(MC.theWorld, defending, 0xF000F0, false, true);
+                    float pokemonScale = 0.5F;
+                    GlStateManager.scale(pokemonScale, pokemonScale, pokemonScale);
+                    RenderHandler.POKEMON_RENDERER.render(renderedPokemon, x / pokemonScale, (y + 5.5) / pokemonScale, z / pokemonScale, partialTicks);
+                }
+                GlStateManager.popMatrix();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            if (defending != null) {
-                RenderedPokemon renderedPokemon = new DataRenderedPokemon(MC.theWorld, defending, 0xF000F0, false, true);
-                float pokemonScale = 0.5F;
-                GlStateManager.scale(pokemonScale, pokemonScale, pokemonScale);
-                RenderHandler.POKEMON_RENDERER.render(renderedPokemon, x / pokemonScale, (y + 5.5) / pokemonScale, z / pokemonScale, partialTicks);
-            }
-            GlStateManager.popMatrix();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
