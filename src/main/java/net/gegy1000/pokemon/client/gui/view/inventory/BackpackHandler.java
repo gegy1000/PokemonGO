@@ -3,7 +3,6 @@ package net.gegy1000.pokemon.client.gui.view.inventory;
 import com.pokegoapi.api.inventory.Inventories;
 import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.api.inventory.ItemBag;
-import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.element.property.CountProperty;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
@@ -80,12 +79,12 @@ public class BackpackHandler extends InventoryHandler {
                             this.getGUI().removeElement(window);
                             itemAction.apply(this.getGUI());
                             return true;
-                        }).withParent(window).withColorScheme(PokemonGUI.THEME_WINDOW);
+                        }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
                         new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.remove.name"), 50.0F, 15.0F, 48, 18, (button) -> {
                             this.getGUI().removeElement(window);
                             this.removeItem(bag, item);
                             return true;
-                        }).withParent(window).withColorScheme(PokemonGUI.THEME_WINDOW);
+                        }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
                         this.getGUI().addElement(window);
                     } else {
                         this.removeItem(bag, item);
@@ -108,16 +107,19 @@ public class BackpackHandler extends InventoryHandler {
         new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.remove.name"), 41.0F, 15.0F, 58, 23, (button) -> {
             int value = slider.getValueInput().getText().length() > 0 ? Integer.parseInt(slider.getValueInput().getText()) : 0;
             if (value > 0 && value <= item.getCount()) {
-                try {
-                    bag.removeItem(item.getItemId(), value);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                PokemonHandler.addTask(() -> {
+                    try {
+                        bag.removeItem(item.getItemId(), value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                });
                 this.getGUI().removeElement(window);
                 return true;
             }
             return false;
-        }).withParent(window).withColorScheme(PokemonGUI.THEME_WINDOW);
+        }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
         this.getGUI().addElement(window);
     }
 }

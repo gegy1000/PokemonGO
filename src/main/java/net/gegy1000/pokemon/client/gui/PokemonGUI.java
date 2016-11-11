@@ -1,10 +1,8 @@
 package net.gegy1000.pokemon.client.gui;
 
 import POGOProtos.Enums.TeamColorOuterClass;
-import net.gegy1000.pokemon.PokemonGO;
-import net.ilexiconn.llibrary.LLibrary;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.ilexiconn.llibrary.client.gui.ElementGUI;
-import net.ilexiconn.llibrary.client.gui.element.color.ColorScheme;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
@@ -17,18 +15,6 @@ import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public abstract class PokemonGUI extends ElementGUI {
-    public static final ColorScheme THEME_TAB_ACTIVE = ColorScheme.create(() -> LLibrary.CONFIG.getAccentColor(), () -> LLibrary.CONFIG.getAccentColor());
-    public static final ColorScheme THEME_WINDOW = ColorScheme.create(() -> LLibrary.CONFIG.getSecondaryColor(), () -> LLibrary.CONFIG.getAccentColor());
-    public static final ColorScheme THEME_DISABLED = ColorScheme.create(() -> LLibrary.CONFIG.getSecondaryColor(), () -> LLibrary.CONFIG.getSecondaryColor());
-
-    public static final ResourceLocation NEUTRAL_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/neutral.png");
-    public static final ResourceLocation INSTINCT_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/instinct.png");
-    public static final ResourceLocation VALOR_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/valor.png");
-    public static final ResourceLocation MYSTIC_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/mystic.png");
-    public static final ResourceLocation STARDUST_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/stardust.png");
-    public static final ResourceLocation POKECOIN_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/pokecoin.png");
-    public static final ResourceLocation EGG_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/egg.png");
-
     public void drawTexturedModalRect(float x, float y, float minU, float minV, float maxU, float maxV, float width, float height) {
         GlStateManager.pushMatrix();
         Tessellator tessellator = Tessellator.getInstance();
@@ -88,19 +74,19 @@ public abstract class PokemonGUI extends ElementGUI {
 
         public Team(TeamColorOuterClass.TeamColor team) {
             this.teamColor = team;
-            this.teamTexture = NEUTRAL_TEXTURE;
+            this.teamTexture = PokemonGUIHandler.NEUTRAL_TEXTURE;
             String teamName = "neutral";
             switch (team) {
                 case YELLOW:
-                    this.teamTexture = INSTINCT_TEXTURE;
+                    this.teamTexture = PokemonGUIHandler.INSTINCT_TEXTURE;
                     teamName = "instinct";
                     break;
                 case RED:
-                    this.teamTexture = VALOR_TEXTURE;
+                    this.teamTexture = PokemonGUIHandler.VALOR_TEXTURE;
                     teamName = "valor";
                     break;
                 case BLUE:
-                    this.teamTexture = MYSTIC_TEXTURE;
+                    this.teamTexture = PokemonGUIHandler.MYSTIC_TEXTURE;
                     teamName = "mystic";
                     break;
             }

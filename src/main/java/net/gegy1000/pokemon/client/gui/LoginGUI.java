@@ -17,6 +17,7 @@ public class LoginGUI extends PokemonGUI {
 
     @Override
     public void initElements() {
+        this.clearElements();
         int centerX = this.width / 2;
         int centerY = this.height / 2;
         this.addElement(new LabelElement<>(this, I18n.translateToLocal("gui.username.name"), centerX - 60.0F, centerY - 30.0F));

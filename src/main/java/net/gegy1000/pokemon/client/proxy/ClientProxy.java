@@ -1,6 +1,7 @@
 package net.gegy1000.pokemon.client.proxy;
 
 import net.gegy1000.pokemon.client.event.ClientEventHandler;
+import net.gegy1000.pokemon.client.gui.GUIOverlay;
 import net.gegy1000.pokemon.client.key.PokemonKeyBinds;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
 import net.gegy1000.pokemon.server.proxy.ServerProxy;
@@ -15,6 +16,7 @@ public class ClientProxy extends ServerProxy {
         RenderHandler.onPreInit();
 
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
+        MinecraftForge.EVENT_BUS.register(new GUIOverlay());
     }
 
     @Override

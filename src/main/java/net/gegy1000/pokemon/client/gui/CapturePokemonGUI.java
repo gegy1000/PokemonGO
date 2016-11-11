@@ -307,7 +307,7 @@ public class CapturePokemonGUI extends PokemonGUI {
                                                         this.removeElement(window);
                                                     }
                                                     return true;
-                                                }).withParent(window).withColorScheme(THEME_WINDOW);
+                                                }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
                                                 this.addElement(window);
                                                 PokemonHandler.API.getPlayerProfile().updateProfile();
                                             }

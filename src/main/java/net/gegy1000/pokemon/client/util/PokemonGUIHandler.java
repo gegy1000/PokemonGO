@@ -12,6 +12,7 @@ import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.ilexiconn.llibrary.LLibrary;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
+import net.ilexiconn.llibrary.client.gui.element.color.ColorScheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -36,8 +37,22 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class PokemonGUIHandler {
+    public static final ColorScheme THEME_TAB_ACTIVE = ColorScheme.create(() -> LLibrary.CONFIG.getAccentColor(), () -> LLibrary.CONFIG.getAccentColor());
+    public static final ColorScheme THEME_WINDOW = ColorScheme.create(() -> LLibrary.CONFIG.getSecondaryColor(), () -> LLibrary.CONFIG.getAccentColor());
+    public static final ColorScheme THEME_DISABLED = ColorScheme.create(() -> LLibrary.CONFIG.getSecondaryColor(), () -> LLibrary.CONFIG.getSecondaryColor());
+
     public static final Map<ItemIdOuterClass.ItemId, ResourceLocation> ITEM_TEXTURES = new HashMap<>();
     public static final ResourceLocation CANDY_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/candy.png");
+
+    public static final ResourceLocation NEUTRAL_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/neutral.png");
+    public static final ResourceLocation INSTINCT_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/instinct.png");
+    public static final ResourceLocation VALOR_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/valor.png");
+    public static final ResourceLocation MYSTIC_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/mystic.png");
+    public static final ResourceLocation STARDUST_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/stardust.png");
+    public static final ResourceLocation POKECOIN_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/pokecoin.png");
+    public static final ResourceLocation EGG_2_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/egg_2.png");
+    public static final ResourceLocation EGG_5_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/egg_5.png");
+    public static final ResourceLocation EGG_10_TEXTURE = new ResourceLocation(PokemonGO.MODID, "textures/items/egg_10.png");
 
     public static final Map<Integer, AdvancedDynamicTexture> POKEMON_SPRITES = new HashMap<>();
     public static final Map<Integer, BufferedImage> DOWNLOADED_POKEMON_SPRITES = new HashMap<>();
@@ -245,5 +260,14 @@ public class PokemonGUIHandler {
 
     public static String getName(PokemonFamilyIdOuterClass.PokemonFamilyId pokemon) {
         return PokemonGUIHandler.getName(PokemonIdOuterClass.PokemonId.values()[pokemon.getNumber()]);
+    }
+
+    public static ResourceLocation getEggTexture(double length) {
+        if (length > 6) {
+            return PokemonGUIHandler.EGG_10_TEXTURE;
+        } else if (length > 3) {
+            return PokemonGUIHandler.EGG_5_TEXTURE;
+        }
+        return PokemonGUIHandler.EGG_2_TEXTURE;
     }
 }

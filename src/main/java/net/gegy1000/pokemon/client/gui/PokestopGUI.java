@@ -5,6 +5,7 @@ import POGOProtos.Inventory.Item.ItemAwardOuterClass;
 import POGOProtos.Inventory.Item.ItemDataOuterClass;
 import POGOProtos.Inventory.Item.ItemIdOuterClass;
 import POGOProtos.Networking.Responses.FortSearchResponseOuterClass;
+import com.google.protobuf.ProtocolStringList;
 import com.pokegoapi.api.inventory.Item;
 import com.pokegoapi.api.map.fort.FortDetails;
 import com.pokegoapi.api.map.fort.Pokestop;
@@ -52,7 +53,11 @@ public class PokestopGUI extends PokemonGUI {
             PokemonHandler.addTask(() -> {
                 try {
                     this.details = pokestop.getDetails();
-                    this.iconImage = ImageIO.read(new URL(this.details.getImageUrl().get(0)).openStream());
+                    ProtocolStringList image = this.details.getImageUrl();
+                    if (image.size() > 0) {
+                        URL url = new URL(image.get(0));
+                        this.iconImage = ImageIO.read(url.openStream());
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -65,6 +70,7 @@ public class PokestopGUI extends PokemonGUI {
 
     @Override
     public void initElements() {
+        this.clearElements();
         ScaledResolution resolution = new ScaledResolution(this.mc);
         this.addElement(this.lootButton = new ButtonElement<>(this, I18n.translateToLocal("gui.loot.name"), 0, this.height - 36, this.width, 18, (button) -> {
             if (this.pokestop.canLoot()) {
@@ -121,7 +127,7 @@ public class PokestopGUI extends PokemonGUI {
                             this.drawTexturedModalRect(slot.getX() + 3, slot.getY() + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
                             this.fontRendererObj.drawString("x" + item.getCount(), slot.getX() + 2, slot.getY() + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
                         } else {
-                            this.mc.getTextureManager().bindTexture(PokemonGUI.EGG_TEXTURE);
+                            this.mc.getTextureManager().bindTexture(PokemonGUIHandler.getEggTexture(loot.getEgg().getEggKmWalkedTarget()));
                             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                             this.drawTexturedModalRect(slot.getX() + 3, slot.getY() + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
                             this.fontRendererObj.drawString("x1", slot.getX() + 2, slot.getY() + tileRenderSize - 9, LLibrary.CONFIG.getTextColor(), false);
@@ -170,7 +176,7 @@ public class PokestopGUI extends PokemonGUI {
                         }
                     }
                 }
-                this.lootButton.withColorScheme(enabled ? Element.DEFAULT : THEME_DISABLED).setEnabled(enabled);
+                this.lootButton.withColorScheme(enabled ? Element.DEFAULT : PokemonGUIHandler.THEME_DISABLED).setEnabled(enabled);
                 lootability = "* " + lootability + " *";
                 this.fontRendererObj.drawString(lootability, this.width / 2 - this.fontRendererObj.getStringWidth(lootability) / 2, this.height - 12, LLibrary.CONFIG.getTextColor(), false);
                 if (enabled) {

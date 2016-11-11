@@ -88,6 +88,7 @@ public class GymAttackGUI extends PokemonGUI {
 
     @Override
     public void initElements() {
+        this.clearElements();
         this.addElement(this.viewElement = new ModelViewElement<>(this, 0.0F, 46.0F, this.width, this.height - 46, (view) -> {
             GlStateManager.scale(1.0F, -1.0F, 1.0F);
             float partialTicks = LLibrary.PROXY.getPartialTicks();

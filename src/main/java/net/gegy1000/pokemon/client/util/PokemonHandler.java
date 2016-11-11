@@ -153,7 +153,7 @@ public class PokemonHandler {
                                 if (!requested && left <= 0.0) {
                                     for (EggPokemon egg : eggs) {
                                         if (egg.isIncubate() && egg.getEggIncubatorId().equals(incubator.getId())) {
-                                            System.out.println("Request Hatch");
+                                            PokemonGO.LOGGER.info("Request Hatch");
                                             REQUESTED_HATCHES.add(incubator);
                                             PokemonHandler.addTask(() -> {
                                                 incubator.hatchEgg(egg);
@@ -168,7 +168,7 @@ public class PokemonHandler {
                             if (queryEggs) {
                                 PokemonHandler.addTask(() -> {
                                     List<HatchedEgg> hatchedEggs = PokemonHandler.API.getInventories().getHatchery().queryHatchedEggs();
-                                    System.out.println(hatchedEggs.size() + " eggs are ready to hatch!");
+                                    PokemonGO.LOGGER.info(hatchedEggs.size() + " eggs are ready to hatch!");
                                     for (HatchedEgg hatchedEgg : hatchedEggs) {
                                         PokeBank pokebank = API.getInventories().getPokebank();
                                         Pokemon pokemon = pokebank.getPokemonById(hatchedEgg.getId());

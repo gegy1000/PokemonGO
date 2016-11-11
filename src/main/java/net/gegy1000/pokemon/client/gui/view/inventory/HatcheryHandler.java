@@ -5,7 +5,6 @@ import com.pokegoapi.api.inventory.EggIncubator;
 import com.pokegoapi.api.inventory.Hatchery;
 import com.pokegoapi.api.inventory.Inventories;
 import com.pokegoapi.api.pokemon.EggPokemon;
-import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
@@ -39,12 +38,12 @@ public class HatcheryHandler extends InventoryHandler {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
         symbols.setDecimalSeparator('.');
         symbols.setGroupingSeparator(',');
-        DecimalFormat shortDecimalFormat = new DecimalFormat("#.##", symbols);
+        DecimalFormat shortDecimalFormat = new DecimalFormat("#.###", symbols);
         slotHandler.draw((slot) -> {
             int index = 0;
             for (EggPokemon egg : eggs) {
                 if (index == slot.getIndex()) {
-                    this.mc.getTextureManager().bindTexture(PokemonGUI.EGG_TEXTURE);
+                    this.mc.getTextureManager().bindTexture(PokemonGUIHandler.getEggTexture(egg.getEggKmWalkedTarget()));
                     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                     this.drawTexturedModalRect(slot.getX() + 3, slot.getY() + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
                     this.fontRenderer.drawString((int) egg.getEggKmWalkedTarget() + "km", (int) slot.getX() + 1, (int) slot.getY() + 3 + tileRenderSize - 11, LLibrary.CONFIG.getTextColor(), false);

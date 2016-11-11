@@ -1,10 +1,10 @@
 generator.earth_pokemongo=Earth - PokeGO
 
 pokeitem.poke_ball.name=Pokéball
-pokeitem.incense_ordinary.name=Ordinary Incense
-pokeitem.incubator_basic_unlimited.name=Basic Unlimited Incubator
+pokeitem.incense_ordinary.name=Incense
+pokeitem.incubator_basic_unlimited.name=Unlimited Incubator
 pokeitem.revive.name=Revive
-pokeitem.incubator_basic.name=Basic Incubator
+pokeitem.incubator_basic.name=Incubator
 pokeitem.candy.name=%s Candy
 pokeitem.razz_berry.name=Razz Berry
 pokeitem.troy_disk.name=Lure Module

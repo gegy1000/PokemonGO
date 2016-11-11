@@ -43,6 +43,8 @@ public class GymGUI extends PokemonGUI {
 
     @Override
     public void initElements() {
+        this.clearElements();
+
         ScaledResolution resolution = new ScaledResolution(this.mc);
 
         this.addElement(this.attackButton = new ButtonElement<>(this, I18n.translateToLocal("gui.attack.name"), this.width / 2.0F - (resolution.getScaleFactor() * 32), this.height / 2.0F - 15, resolution.getScaleFactor() * 64, 30, (button) -> {

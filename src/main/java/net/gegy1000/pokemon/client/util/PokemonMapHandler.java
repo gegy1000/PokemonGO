@@ -22,47 +22,49 @@ public class PokemonMapHandler {
     public static final List<Gym> GYMS = new LinkedList<>();
     public static final List<Pokestop> POKESTOPS = new LinkedList<>();
 
+    private static final Object MAP_LOCK = new Object();
+
     public static long lastMapUpdate;
 
     public static List<NearbyPokemon> getNearbyPokemon() {
-        synchronized (NEARBY_POKEMONS) {
+        synchronized (MAP_LOCK) {
             return NEARBY_POKEMONS;
         }
     }
 
     public static List<CatchablePokemon> getCatchablePokemon() {
-        synchronized (CATCHABLE_POKEMON) {
+        synchronized (MAP_LOCK) {
             return CATCHABLE_POKEMON;
         }
     }
 
     public static List<CatchableRenderedPokemon> getCatchableRenderedPokemon() {
-        synchronized (CATCHABLE_RENDERED_POKEMON) {
+        synchronized (MAP_LOCK) {
             return CATCHABLE_RENDERED_POKEMON;
         }
     }
 
     public static List<Gym> getGyms() {
-        synchronized (GYMS) {
+        synchronized (MAP_LOCK) {
             return GYMS;
         }
     }
 
     public static List<Pokestop> getPokestops() {
-        synchronized (POKESTOPS) {
+        synchronized (MAP_LOCK) {
             return POKESTOPS;
         }
     }
 
     public static void removePokemon(CatchablePokemon pokemon) {
-        synchronized (CATCHABLE_POKEMON) {
+        synchronized (MAP_LOCK) {
             CATCHABLE_POKEMON.remove(pokemon);
         }
         PokemonMapHandler.updateRenderedPokemon();
     }
 
     public static void updateRenderedPokemon() {
-        synchronized (CATCHABLE_RENDERED_POKEMON) {
+        synchronized (MAP_LOCK) {
             CATCHABLE_RENDERED_POKEMON.clear();
             for (CatchablePokemon pokemon : CATCHABLE_POKEMON) {
                 CATCHABLE_RENDERED_POKEMON.add(new CatchableRenderedPokemon(Minecraft.getMinecraft().theWorld, pokemon, true, true));
@@ -80,26 +82,26 @@ public class PokemonMapHandler {
                     lastMapUpdate = time;
                     Map map = PokemonHandler.API.getMap();
                     List<NearbyPokemon> nearbyPokemon = map.getNearbyPokemon();
-                    synchronized (NEARBY_POKEMONS) {
+                    synchronized (MAP_LOCK) {
                         NEARBY_POKEMONS.clear();
                         NEARBY_POKEMONS.addAll(nearbyPokemon);
                     }
                     List<CatchablePokemon> catchablePokemon = map.getCatchablePokemon();
-                    synchronized (CATCHABLE_POKEMON) {
+                    synchronized (MAP_LOCK) {
                         CATCHABLE_POKEMON.clear();
                         CATCHABLE_POKEMON.addAll(catchablePokemon);
                     }
                     PokemonMapHandler.updateRenderedPokemon();
                     List<Gym> gyms = map.getGyms();
                     for (Gym gym : gyms) {
-                        gym.getGymMembers();
+                        gym.getDefendingPokemon();
                     }
-                    synchronized (GYMS) {
+                    synchronized (MAP_LOCK) {
                         GYMS.clear();
                         GYMS.addAll(gyms);
                     }
                     Collection<Pokestop> pokestops = map.getMapObjects().getPokestops();
-                    synchronized (POKESTOPS) {
+                    synchronized (MAP_LOCK) {
                         POKESTOPS.clear();
                         POKESTOPS.addAll(pokestops);
                     }
@@ -112,16 +114,10 @@ public class PokemonMapHandler {
     }
 
     public static void clear() {
-        synchronized (CATCHABLE_POKEMON) {
+        synchronized (MAP_LOCK) {
             CATCHABLE_POKEMON.clear();
-        }
-        synchronized (CATCHABLE_RENDERED_POKEMON) {
             CATCHABLE_RENDERED_POKEMON.clear();
-        }
-        synchronized (GYMS) {
             GYMS.clear();
-        }
-        synchronized (POKESTOPS) {
             POKESTOPS.clear();
         }
     }

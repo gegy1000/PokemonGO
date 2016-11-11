@@ -10,7 +10,6 @@ import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.api.pokemon.Pokemon;
 import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
-import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.DrawableElement;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
@@ -184,7 +183,7 @@ public class PokebankHandler extends InventoryHandler {
                         this.drawTexturedModalRect(buttonOffset + scaleFactor * 43, buttonY + resolution.getScaleFactor() * 8 + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
                     }
                     this.drawTexturedModalRect(buttonOffset / 2 + scaleFactor * 43, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
-                    ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUI.STARDUST_TEXTURE);
+                    ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUIHandler.STARDUST_TEXTURE);
                     this.drawTexturedModalRect((int) (buttonOffset * 1.3) + scaleFactor * 45, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -220,7 +219,7 @@ public class PokebankHandler extends InventoryHandler {
                     return true;
                 }
                 return false;
-            }).withParent(window).withColorScheme(canPowerUp ? Element.DEFAULT : PokemonGUI.THEME_DISABLED).setEnabled(canPowerUp);
+            }).withParent(window).withColorScheme(canPowerUp ? Element.DEFAULT : PokemonGUIHandler.THEME_DISABLED).setEnabled(canPowerUp);
             new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.evolve.name"), buttonOffset / 2 + 1, buttonY + buttonHeight + 19, scaleFactor * 50 - buttonOffset / 2, buttonHeight - 2, (button) -> {
                 if (canEvolve) {
                     PokemonHandler.addTask(() -> {
@@ -240,7 +239,7 @@ public class PokebankHandler extends InventoryHandler {
                     return true;
                 }
                 return false;
-            }).withParent(window).withColorScheme(canEvolve ? Element.DEFAULT : PokemonGUI.THEME_DISABLED).setEnabled(canEvolve);
+            }).withParent(window).withColorScheme(canEvolve ? Element.DEFAULT : PokemonGUIHandler.THEME_DISABLED).setEnabled(canEvolve);
             this.getGUI().addElement(window);
         } catch (Exception e) {
         }

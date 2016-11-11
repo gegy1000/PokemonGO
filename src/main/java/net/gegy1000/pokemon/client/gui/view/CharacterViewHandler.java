@@ -1,7 +1,7 @@
 package net.gegy1000.pokemon.client.gui.view;
 
 import POGOProtos.Networking.Responses.ClaimCodenameResponseOuterClass;
-import net.gegy1000.pokemon.client.gui.PokemonGUI;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.gegy1000.pokemon.client.util.PokemonRequestHandler;
 import net.ilexiconn.llibrary.LLibrary;
@@ -80,7 +80,7 @@ public class CharacterViewHandler extends ViewHandler {
                             new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.okay.name"), 1, 29, windowWidth - 2, 15, (button) -> {
                                 this.getGUI().removeElement(window);
                                 return true;
-                            }).withParent(window).withColorScheme(PokemonGUI.THEME_WINDOW);
+                            }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
                             this.getGUI().addElement(window);
                         }
                     } catch (Exception e) {

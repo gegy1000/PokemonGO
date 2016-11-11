@@ -9,6 +9,7 @@ import net.gegy1000.pokemon.client.gui.LoginGUI;
 import net.gegy1000.pokemon.client.gui.PokemonGUI;
 import net.gegy1000.pokemon.client.gui.element.TeamElement;
 import net.gegy1000.pokemon.client.gui.view.inventory.InventoryViewHandler;
+import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.gegy1000.pokemon.client.util.PokemonRequestHandler;
 import net.ilexiconn.llibrary.LLibrary;
@@ -55,11 +56,11 @@ public class PokemonViewGUI extends PokemonGUI {
             new ButtonElement<>(this, I18n.translateToLocal("gui.login.name"), 1.0F, 30.0F, 84, 19, (button) -> {
                 this.mc.displayGuiScreen(new LoginGUI());
                 return true;
-            }).withParent(window).withColorScheme(THEME_WINDOW);
+            }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
             new ButtonElement<>(this, I18n.translateToLocal("gui.cancel.name"), 87.0F, 30.0F, 84, 19, (button) -> {
                 this.mc.displayGuiScreen(null);
                 return true;
-            }).withParent(window).withColorScheme(THEME_WINDOW);
+            }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
             this.addElement(window);
         }
         this.addElement(this.character = new ButtonElement<>(this, I18n.translateToLocal("view.character.name"), this.width - 180.0F, 0.0F, 60, 18, (button) -> {
@@ -69,7 +70,7 @@ public class PokemonViewGUI extends PokemonGUI {
         this.addElement(this.nearby = (ButtonElement<PokemonViewGUI>) new ButtonElement<>(this, I18n.translateToLocal("view.nearby.name"), this.width - 240.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.NEARBY);
             return true;
-        }).withColorScheme(THEME_TAB_ACTIVE));
+        }).withColorScheme(PokemonGUIHandler.THEME_TAB_ACTIVE));
         this.addElement(this.inventory = new ButtonElement<>(this, I18n.translateToLocal("view.inventory.name"), this.width - 120.0F, 0.0F, 60, 18, (button) -> {
             this.setViewMode(ViewMode.INVENTORY);
             return true;
@@ -111,10 +112,10 @@ public class PokemonViewGUI extends PokemonGUI {
                 } catch (Exception e) {
                 }
 
-                this.mc.getTextureManager().bindTexture(STARDUST_TEXTURE);
+                this.mc.getTextureManager().bindTexture(PokemonGUIHandler.STARDUST_TEXTURE);
                 this.drawTexturedModalRect(this.width / 3, this.height - 24, 0.0F, 0.0F, 1.0F, 1.0F, 16, 16);
 
-                this.mc.getTextureManager().bindTexture(POKECOIN_TEXTURE);
+                this.mc.getTextureManager().bindTexture(PokemonGUIHandler.POKECOIN_TEXTURE);
                 this.drawTexturedModalRect(this.width - this.width / 3 - 16, this.height - 24, 0.0F, 0.0F, 1.0F, 1.0F, 16, 16);
 
                 this.fontRendererObj.drawString(String.valueOf(stardust), this.width / 3 + 16, this.height - 19, LLibrary.CONFIG.getTextColor());
@@ -169,7 +170,7 @@ public class PokemonViewGUI extends PokemonGUI {
             this.removeElement(confirmWindow);
             this.addElement(window);
             return true;
-        }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
+        }).withParent(confirmWindow).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
         new ButtonElement<>(this, I18n.translateToLocal("gui.okay.name"), 118.0F, 31.0F, 116, 15, (button) -> {
             this.removeElement(confirmWindow);
             PokemonHandler.addTask(() -> {
@@ -185,7 +186,7 @@ public class PokemonViewGUI extends PokemonGUI {
                 return null;
             });
             return true;
-        }).withParent(confirmWindow).withColorScheme(THEME_WINDOW);
+        }).withParent(confirmWindow).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
         this.addElement(confirmWindow);
     }
 
@@ -197,7 +198,7 @@ public class PokemonViewGUI extends PokemonGUI {
         }
 
         this.viewMode = viewMode;
-        this.viewMode.getButton(this).withColorScheme(THEME_TAB_ACTIVE);
+        this.viewMode.getButton(this).withColorScheme(PokemonGUIHandler.THEME_TAB_ACTIVE);
 
         if (prevViewMode != null) {
             this.viewHandlers.get(prevViewMode).cleanupView();
