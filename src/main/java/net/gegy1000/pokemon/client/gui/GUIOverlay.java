@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class GUIOverlay extends Gui {
     private static final Minecraft MC = Minecraft.getMinecraft();
@@ -58,15 +59,18 @@ public class GUIOverlay extends Gui {
         DecimalFormat shortDecimalFormat = new DecimalFormat("#.##", symbols);
         int eggY = 15;
         if (inventories != null && inventories.getHatchery() != null) {
-            for (EggPokemon egg : inventories.getHatchery().getEggs()) {
-                if (egg.isIncubate()) {
-                    MC.fontRendererObj.drawString(shortDecimalFormat.format(egg.getEggKmWalked()) + "/" + egg.getEggKmWalkedTarget() + "km", 22, eggY + 2, 0xFFFFFF);
-                    MC.getTextureManager().bindTexture(PokemonGUIHandler.getEggTexture(egg.getEggKmWalkedTarget()));
-                    Gui.drawScaledCustomSizeModalRect(2, eggY, 0, 0, 1, 1, 18, 18, 1, 1);
-                    GlStateManager.disableTexture2D();
-                    Gui.drawRect(22, eggY + 11, 102, eggY + 16, 0xFF606060);
-                    Gui.drawRect(23, eggY + 12, (int) (23 + ((Math.min(egg.getEggKmWalked(), egg.getEggKmWalkedTarget()) * 78.0) / egg.getEggKmWalkedTarget())), eggY + 15, 0xFF00FF60);
-                    eggY += 20;
+            Set<EggPokemon> eggs = inventories.getHatchery().getEggs();
+            if (eggs != null) {
+                for (EggPokemon egg : eggs) {
+                    if (egg != null && egg.isIncubate()) {
+                        MC.fontRendererObj.drawString(shortDecimalFormat.format(egg.getEggKmWalked()) + "/" + egg.getEggKmWalkedTarget() + "km", 22, eggY + 2, 0xFFFFFF);
+                        MC.getTextureManager().bindTexture(PokemonGUIHandler.getEggTexture(egg.getEggKmWalkedTarget()));
+                        Gui.drawScaledCustomSizeModalRect(2, eggY, 0, 0, 1, 1, 18, 18, 1, 1);
+                        GlStateManager.disableTexture2D();
+                        Gui.drawRect(22, eggY + 11, 102, eggY + 16, 0xFF606060);
+                        Gui.drawRect(23, eggY + 12, (int) (23 + ((Math.min(egg.getEggKmWalked(), egg.getEggKmWalkedTarget()) * 78.0) / egg.getEggKmWalkedTarget())), eggY + 15, 0xFF00FF60);
+                        eggY += 20;
+                    }
                 }
             }
         }
@@ -93,20 +97,19 @@ public class GUIOverlay extends Gui {
         Map<PokemonIdOuterClass.PokemonId, Integer> sortedNearbyPokemon = new HashMap<>();
         int displayCount = 0;
         for (NearbyPokemon pokemon : nearbyPokemon) {
-            Integer count = sortedNearbyPokemon.get(pokemon.getPokemonId());
+            PokemonIdOuterClass.PokemonId id = pokemon.getPokemonId();
+            Integer count = sortedNearbyPokemon.get(id);
             if (count == null) {
                 count = 1;
                 if (sortedNearbyPokemon.size() >= 6) {
                     extra = true;
-                }
-                else
-                {
+                } else {
                     displayCount++;
                 }
             } else {
                 count++;
             }
-            sortedNearbyPokemon.put(pokemon.getPokemonId(), count);
+            sortedNearbyPokemon.put(id, count);
         }
         GlStateManager.enableBlend();
         ScaledResolution resolution = new ScaledResolution(MC);

@@ -97,7 +97,7 @@ public class PokestopGUI extends PokemonGUI {
                             ItemDataOuterClass.ItemData.Builder builder = ItemDataOuterClass.ItemData.newBuilder();
                             builder.setCount(entry.getValue());
                             builder.setItemId(entry.getKey());
-                            this.loot.add(new PokestopLoot(new Item(builder.build())));
+                            this.loot.add(new PokestopLoot(new Item(builder.build(), PokemonHandler.API.getInventories().getItemBag())));
                         }
                         if (this.result.toPrimitive().hasPokemonDataEgg()) {
                             this.loot.add(new PokestopLoot(this.result.toPrimitive().getPokemonDataEgg()));

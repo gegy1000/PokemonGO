@@ -6,7 +6,6 @@ import com.pokegoapi.api.inventory.Inventories;
 import net.gegy1000.pokemon.client.gui.element.InventoryGridElement;
 import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.ilexiconn.llibrary.LLibrary;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 
@@ -30,8 +29,11 @@ public class CandyJarHandler extends InventoryHandler {
         slotHandler.draw((slot) -> {
             PokemonFamilyIdOuterClass.PokemonFamilyId family = families.get(slot.getIndex());
             int count = candies.get(family);
-            this.mc.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(family));
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            this.mc.getTextureManager().bindTexture(PokemonGUIHandler.CANDY_TEXTURE);
+            PokemonGUIHandler.colour(PokemonGUIHandler.getCandyPrimary(family));
+            this.drawTexturedModalRect(slot.getX() + 3, slot.getY() + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
+            this.mc.getTextureManager().bindTexture(PokemonGUIHandler.CANDY_STRIPE_TEXTURE);
+            PokemonGUIHandler.colour(PokemonGUIHandler.getCandySecondary(family));
             this.drawTexturedModalRect(slot.getX() + 3, slot.getY() + 3, 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 6, tileRenderSize - 6);
             this.fontRenderer.drawString("x" + count, (int) slot.getX() + 1, (int) slot.getY() + 3 + tileRenderSize - 11, LLibrary.CONFIG.getTextColor(), false);
             boolean shortened = false;

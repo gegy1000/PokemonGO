@@ -32,6 +32,7 @@ public class IncubatorsHandler extends InventoryHandler {
         symbols.setGroupingSeparator(',');
         DecimalFormat shortDecimalFormat = new DecimalFormat("#.##", symbols);
         slotHandler.draw((slot) -> {
+            GlStateManager.enableBlend();
             EggIncubator incubator = incubators.get(slot.getIndex());
             int usesRemaining = incubator.getUsesRemaining();
             String usesRemainingString = String.valueOf(usesRemaining);
@@ -42,7 +43,7 @@ public class IncubatorsHandler extends InventoryHandler {
                 ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(ItemIdOuterClass.ItemId.ITEM_INCUBATOR_BASIC));
             }
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            this.drawTexturedModalRect(slot.getX(), slot.getY() + (incubator.isInUse() ? 3 : 0), 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 2, tileRenderSize - 2);
+            this.drawTexturedModalRect(slot.getX() + 1, slot.getY() + (incubator.isInUse() ? 4 : 1), 0.0F, 0.0F, 1.0F, 1.0F, tileRenderSize - 4, tileRenderSize - 4);
             this.fontRenderer.drawString(usesRemainingString, (int) slot.getX() + 1, (int) slot.getY() + 3 + tileRenderSize - 11, LLibrary.CONFIG.getTextColor(), false);
             if (incubator.isInUse()) {
                 this.drawRectangle(slot.getX() + 1, slot.getY() + 1, tileRenderSize - 2, 4, LLibrary.CONFIG.getPrimaryColor());

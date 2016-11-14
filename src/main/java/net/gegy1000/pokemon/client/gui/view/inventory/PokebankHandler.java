@@ -1,6 +1,7 @@
 package net.gegy1000.pokemon.client.gui.view.inventory;
 
 import POGOProtos.Data.PokemonDataOuterClass;
+import POGOProtos.Enums.PokemonFamilyIdOuterClass;
 import POGOProtos.Networking.Responses.NicknamePokemonResponseOuterClass;
 import com.pokegoapi.api.inventory.CandyJar;
 import com.pokegoapi.api.inventory.Inventories;
@@ -176,13 +177,23 @@ public class PokebankHandler extends InventoryHandler {
                     if (pokemon.getCandiesToEvolve() != 0) {
                         this.fontRenderer.drawString(String.valueOf(canEvolve ? "" : TextFormatting.RED) + pokemon.getCandiesToEvolve(), buttonOffset + scaleFactor * 50, buttonY + resolution.getScaleFactor() * 8 + buttonHeight / 2 - fontHeight / 2, textColor);
                     }
-                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                    ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUIHandler.getTexture(pokemon.getPokemonFamily()));
                     int costIconSize = (int) (scaleFactor * 5.5);
+                    PokemonFamilyIdOuterClass.PokemonFamilyId family = pokemon.getPokemonFamily();
                     if (pokemon.getCandiesToEvolve() != 0) {
+                        this.mc.getTextureManager().bindTexture(PokemonGUIHandler.CANDY_TEXTURE);
+                        PokemonGUIHandler.colour(PokemonGUIHandler.getCandyPrimary(family));
+                        this.drawTexturedModalRect(buttonOffset + scaleFactor * 43, buttonY + resolution.getScaleFactor() * 8 + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
+                        this.mc.getTextureManager().bindTexture(PokemonGUIHandler.CANDY_STRIPE_TEXTURE);
+                        PokemonGUIHandler.colour(PokemonGUIHandler.getCandySecondary(family));
                         this.drawTexturedModalRect(buttonOffset + scaleFactor * 43, buttonY + resolution.getScaleFactor() * 8 + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
                     }
-                    this.drawTexturedModalRect(buttonOffset / 2 + scaleFactor * 43, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
+                    this.mc.getTextureManager().bindTexture(PokemonGUIHandler.CANDY_TEXTURE);
+                    PokemonGUIHandler.colour(PokemonGUIHandler.getCandyPrimary(family));
+                    this.drawTexturedModalRect((buttonOffset / 2) + scaleFactor * 43, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
+                    this.mc.getTextureManager().bindTexture(PokemonGUIHandler.CANDY_STRIPE_TEXTURE);
+                    PokemonGUIHandler.colour(PokemonGUIHandler.getCandySecondary(family));
+                    this.drawTexturedModalRect((buttonOffset / 2) + scaleFactor * 43, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                     ClientProxy.MINECRAFT.getTextureManager().bindTexture(PokemonGUIHandler.STARDUST_TEXTURE);
                     this.drawTexturedModalRect((int) (buttonOffset * 1.3) + scaleFactor * 45, buttonY + 1, 0.0F, 0.0F, 1.0F, 1.0F, costIconSize, costIconSize);
                 } catch (Exception e) {
@@ -191,9 +202,9 @@ public class PokebankHandler extends InventoryHandler {
                 return null;
             }).withParent(window);
             new ButtonElement<>(this.getGUI(), I18n.translateToLocal("gui.release.name"), 1.0F, scaleFactor * 100 - 21, scaleFactor * 100 - 2, 20, (button) -> {
+                this.getGUI().removeElement(window);
                 PokemonHandler.addTask(() -> {
                     try {
-                        this.getGUI().removeElement(window);
                         pokemon.transferPokemon();
                         PokemonHandler.API.getPlayerProfile().updateProfile();
                         PokemonHandler.API.getInventories().updateInventories();
@@ -226,11 +237,19 @@ public class PokebankHandler extends InventoryHandler {
                         try {
                             EvolutionResult result = pokemon.evolve();
                             if (result.isSuccessful()) {
-                                this.openPokemonView(resolution, result.getEvolvedPokemon());
+                                PokemonHandler.addMainThreadTask(() -> {
+                                    this.openPokemonView(resolution, result.getEvolvedPokemon());
+                                    this.getGUI().removeElement(window);
+                                    return null;
+                                });
                                 PokemonHandler.API.getPlayerProfile().updateProfile();
                                 PokemonHandler.API.getInventories().updateInventories();
+                            } else {
+                                PokemonHandler.addMainThreadTask(() -> {
+                                    this.getGUI().removeElement(window);
+                                    return null;
+                                });
                             }
-                            this.getGUI().removeElement(window);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

@@ -1,6 +1,7 @@
 package net.gegy1000.pokemon.client.gui;
 
 import POGOProtos.Data.PokemonDataOuterClass;
+import com.google.protobuf.ProtocolStringList;
 import com.pokegoapi.api.gym.Gym;
 import com.pokegoapi.api.inventory.PokeBank;
 import com.pokegoapi.api.pokemon.Pokemon;
@@ -17,6 +18,9 @@ import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +33,9 @@ public class GymGUI extends PokemonGUI {
     private String name;
     private String description;
 
+    private AdvancedDynamicTexture icon;
+    private BufferedImage iconImage;
+
     private ButtonElement<GymGUI> attackButton;
 
     public GymGUI(Gym gym) {
@@ -36,6 +43,18 @@ public class GymGUI extends PokemonGUI {
             this.gym = gym;
             this.name = gym.getName();
             this.description = gym.getDescription();
+            PokemonHandler.addTask(() -> {
+                try {
+                    ProtocolStringList image = gym.getUrlsList();
+                    if (image.size() > 0) {
+                        URL url = new URL(image.get(0));
+                        this.iconImage = ImageIO.read(url.openStream());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,7 +66,7 @@ public class GymGUI extends PokemonGUI {
 
         ScaledResolution resolution = new ScaledResolution(this.mc);
 
-        this.addElement(this.attackButton = new ButtonElement<>(this, I18n.translateToLocal("gui.attack.name"), this.width / 2.0F - (resolution.getScaleFactor() * 32), this.height / 2.0F - 15, resolution.getScaleFactor() * 64, 30, (button) -> {
+        this.addElement(this.attackButton = new ButtonElement<>(this, I18n.translateToLocal("gui.attack.name"), 0, this.height - 36, this.width, 18, (button) -> {
             try {
                 if (this.gym.isAttackable() && !this.gym.getIsInBattle()) {
                     PokeBank pokebank = PokemonHandler.API.getInventories().getPokebank();
@@ -152,7 +171,7 @@ public class GymGUI extends PokemonGUI {
                         e.printStackTrace();
                     }
                     return tooltip;
-                }, Math.max(6, pokemons.size()));
+                }, Math.max(6, Math.min(24, pokemons.size())));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -215,9 +234,32 @@ public class GymGUI extends PokemonGUI {
                 this.fontRendererObj.drawString(I18n.translateToLocal("gui.defense.name"), this.width / 8, 40, textColor);
                 String me = I18n.translateToLocal("gui.me.name");
                 this.fontRendererObj.drawString(me, this.width - this.width / 8 - this.fontRendererObj.getStringWidth(me) - 15, 40, textColor);
+
+                if (this.iconImage != null && this.icon == null) {
+                    this.icon = new AdvancedDynamicTexture("gym_icon", this.iconImage);
+                }
+                ScaledResolution resolution = new ScaledResolution(this.mc);
+                int size = resolution.getScaleFactor() * 64;
+                int iconX = this.width / 2 - (size / 2);
+                int iconY = this.height / 2 - (size / 2);
+                this.drawRectangle(iconX - 1, iconY - 1, size + 2, size + 2, LLibrary.CONFIG.getSecondaryColor());
+                if (this.icon != null) {
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                    GlStateManager.enableTexture2D();
+                    this.icon.bind();
+                    this.drawTexturedModalRect(iconX, iconY, 0, 0, size, size, size, size, 1.0, 1.0);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onGuiClosed() {
+        super.onGuiClosed();
+        if (this.icon != null) {
+            this.icon.delete();
         }
     }
 }

@@ -49,7 +49,7 @@ public class GymAttackGUI extends PokemonGUI {
         this.team = team;
         PokemonHandler.addTask(() -> {
             try {
-                PokemonHandler.API.getInventories().updateInventories(false);
+                PokemonHandler.API.getInventories().updateInventories();
                 GymBattle battle = new GymBattle(PokemonHandler.API, this.gym, this.team);
                 battle.start();
                 this.battle = battle;

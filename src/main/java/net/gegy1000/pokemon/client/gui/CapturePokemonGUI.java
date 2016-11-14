@@ -17,8 +17,6 @@ import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.gegy1000.pokemon.client.util.PokemonMapHandler;
 import net.gegy1000.pokemon.client.util.PokemonUtils;
 import net.ilexiconn.llibrary.LLibrary;
-import net.ilexiconn.llibrary.client.gui.element.ButtonElement;
-import net.ilexiconn.llibrary.client.gui.element.LabelElement;
 import net.ilexiconn.llibrary.client.gui.element.WindowElement;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -251,20 +249,16 @@ public class CapturePokemonGUI extends PokemonGUI {
                                             catchOptions.usePokeball(selectedPokeball);
                                             Item capture = bag.getItem(captureItem);
                                             Item razzbery = bag.getItem(ItemIdOuterClass.ItemId.ITEM_RAZZ_BERRY);
-                                            capture.setCount(capture.getCount() - 1);
-                                            if (this.usingRazzbery) {
-                                                razzbery.setCount(razzbery.getCount() - 1);
-                                            }
                                             CatchResult result = this.pokemon.catchPokemon(catchOptions);
                                             PokemonHandler.addTask(() -> {
                                                 PokemonHandler.API.getInventories().updateInventories();
                                                 return null;
                                             });
-                                            if (result.getStatus() == CatchPokemonResponseOuterClass.CatchPokemonResponse.CatchStatus.CATCH_ERROR) {
+                                            if (result.getStatus() != CatchPokemonResponseOuterClass.CatchPokemonResponse.CatchStatus.CATCH_ERROR) {
                                                 if (this.usingRazzbery) {
-                                                    razzbery.setCount(razzbery.getCount() + 1);
+                                                    razzbery.setCount(razzbery.getCount() - 1);
                                                 }
-                                                capture.setCount(capture.getCount() + 1);
+                                                capture.setCount(capture.getCount() - 1);
                                             }
                                             this.usingRazzbery = false;
                                             boolean close = false;
@@ -295,19 +289,15 @@ public class CapturePokemonGUI extends PokemonGUI {
                                                     close = true;
                                             }
                                             if (statusWindowMessage != null) {
-                                                int windowWidth = this.fontRendererObj.getStringWidth(statusWindowMessage) + 4;
-                                                WindowElement<CapturePokemonGUI> window = new WindowElement<>(this, statusWindowTitle, windowWidth, 45, false);
-                                                new LabelElement<>(this, statusWindowMessage, 2, 18).withParent(window);
                                                 boolean finalClose = close;
-                                                new ButtonElement<>(this, I18n.translateToLocal("gui.okay.name"), 1, 29, windowWidth - 2, 15, (button) -> {
+                                                WindowElement<CapturePokemonGUI> window = PokemonGUIHandler.getWindow(this, statusWindowTitle, statusWindowMessage, (w) -> {
                                                     if (finalClose) {
                                                         this.mc.displayGuiScreen(null);
                                                         PokemonMapHandler.removePokemon(this.pokemon);
                                                     } else {
-                                                        this.removeElement(window);
+                                                        this.removeElement(w);
                                                     }
-                                                    return true;
-                                                }).withParent(window).withColorScheme(PokemonGUIHandler.THEME_WINDOW);
+                                                });
                                                 this.addElement(window);
                                                 PokemonHandler.API.getPlayerProfile().updateProfile();
                                             }

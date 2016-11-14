@@ -35,6 +35,9 @@ public class GymBattle {
     private BattlePokemonInfoOuterClass.BattlePokemonInfo activeDefender;
     private AttackGymResponseOuterClass.AttackGymResponse lastResponse;
 
+    private long start;
+    private long end;
+
     private final List<BattleActionOuterClass.BattleAction> sendActionQueue = new ArrayList<>();
 
     public GymBattle(PokemonGo api, Gym gym, Pokemon[] team) {
@@ -43,7 +46,7 @@ public class GymBattle {
         this.team = team;
     }
 
-    public StartGymBattleResponseOuterClass.StartGymBattleResponse start() throws Exception {
+    public boolean start() throws Exception {
         StartGymBattleMessageOuterClass.StartGymBattleMessage.Builder builder = StartGymBattleMessageOuterClass.StartGymBattleMessage.newBuilder();
         for (Pokemon pokemon : this.team) {
             builder.addAttackingPokemonIds(pokemon.getId());
@@ -56,10 +59,14 @@ public class GymBattle {
         this.battleID = this.startResponse.getBattleId();
         if (this.startResponse.getResult() == StartGymBattleResponseOuterClass.StartGymBattleResponse.Result.SUCCESS) {
             this.inProgress = true;
+            this.start = this.startResponse.getBattleStartTimestampMs();
+            this.end = this.startResponse.getBattleEndTimestampMs();
+            BattleLogOuterClass.BattleLog log = this.startResponse.getBattleLog();
         }
         this.performActions(new ArrayList<>());
-        this.targetIndex += this.lastResponse.getBattleLog().getBattleActionsCount();
-        return this.startResponse;
+        BattleLogOuterClass.BattleLog log = this.lastResponse.getBattleLog();
+        this.targetIndex += log.getBattleActionsCount();
+        return this.inProgress;
     }
 
     public AttackGymResponseOuterClass.AttackGymResponse performActions(List<BattleActionOuterClass.BattleAction> actions) throws Exception {
@@ -82,7 +89,7 @@ public class GymBattle {
         this.serverTimeOffset = this.lastResponse.getBattleLog().getServerMs() - System.currentTimeMillis();
         PokemonGO.LOGGER.info("Result: " + this.lastResponse.getResult());
         PokemonGO.LOGGER.info("");
-        if (this.state == BattleStateOuterClass.BattleState.DEFEATED || this.state == BattleStateOuterClass.BattleState.VICTORY || this.state == BattleStateOuterClass.BattleState.TIMED_OUT) {
+        if (this.state != BattleStateOuterClass.BattleState.ACTIVE) {
             this.inProgress = false;
         }
         return this.lastResponse;

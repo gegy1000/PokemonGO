@@ -23,6 +23,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 import okhttp3.OkHttpClient;
 
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -33,6 +34,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class PokemonHandler {
     private static final Queue<FutureTask<?>> TASKS = new LinkedBlockingDeque<>();
+    private static final Queue<FutureTask<?>> MAIN_TASKS = new LinkedBlockingDeque<>();
 
     public static final Set<EggIncubator> REQUESTED_HATCHES = new HashSet<>();
     public static long lastProfileUpdate;
@@ -72,6 +74,10 @@ public class PokemonHandler {
         TASKS.add(new FutureTask<>(task));
     }
 
+    public static void addMainThreadTask(Callable<?> task) {
+        MAIN_TASKS.add(new FutureTask<>(task));
+    }
+
     public static void authenticate(String username, String password) {
         PokemonHandler.authenticating = true;
         PokemonHandler.username = username;
@@ -90,10 +96,26 @@ public class PokemonHandler {
                     PokemonGO.LOGGER.info(cp.getPokemonId() + " at " + cp.getLatitude() + " " + cp.getLongitude());
                 }
                 PokemonRefreshHandler.startRefresh();
-                PokemonHandler.username = API.getPlayerProfile().getPlayerData().getUsername();
-                PokemonHandler.level = API.getPlayerProfile().getStats().getLevel();
-                PokemonHandler.experience = API.getPlayerProfile().getStats().getExperience();
+                PlayerProfile profile = API.getPlayerProfile();
+                PokemonHandler.username = profile.getPlayerData().getUsername();
+                PokemonHandler.level = profile.getStats().getLevel();
+                PokemonHandler.experience = profile.getStats().getExperience();
                 PokemonHandler.authenticating = false;
+                PokemonHandler.addTask(() -> {
+                    try {
+                        URL challenge = PokemonRequestHandler.getChallenge();
+                        if (challenge != null) {
+                            PokemonGO.LOGGER.info("Challenge required. Asking for user input.");
+                            PokemonGO.LOGGER.info(challenge);
+                            //TODO
+                        } else {
+                            PokemonGO.LOGGER.info("No challenge required.");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                });
             } catch (Exception e) {
                 API = null;
                 System.err.println("Failed to authenticate.");
@@ -107,6 +129,15 @@ public class PokemonHandler {
     }
 
     public static void update(EntityPlayer player) {
+        try {
+            if (MAIN_TASKS.size() > 0) {
+                FutureTask<?> task = MAIN_TASKS.poll();
+                task.run();
+                task.get();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         PokemonGUIHandler.update();
         if (player != null) {
             if (API != null && !authenticating) {

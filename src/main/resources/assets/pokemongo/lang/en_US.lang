@@ -113,6 +113,9 @@ gui.times_captured.name=Times Captured: %s
 gui.times_encountered.name=Times Encountered: %s
 gui.speed.name=%s kmph
 gui.login_client.name=If the problem persists, please try from the official app.
+gui.solve.name=Solve
+gui.challenge.name=Challenge
+gui.captcha_incorrect.name=The captcha was incorrect!
 
 stat.level.name=Level:
 stat.experience.name=Experience:
