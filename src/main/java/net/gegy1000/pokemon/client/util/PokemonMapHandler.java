@@ -22,7 +22,7 @@ public class PokemonMapHandler {
     public static final List<Gym> GYMS = new LinkedList<>();
     public static final List<Pokestop> POKESTOPS = new LinkedList<>();
 
-    private static final Object MAP_LOCK = new Object();
+    public static final Object MAP_LOCK = new Object();
 
     public static long lastMapUpdate;
 

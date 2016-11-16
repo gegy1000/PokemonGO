@@ -1,13 +1,20 @@
 package net.gegy1000.pokemon.client.util;
 
+import POGOProtos.Enums.EncounterTypeOuterClass;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.inventory.EggIncubator;
 import com.pokegoapi.api.inventory.PokeBank;
+import com.pokegoapi.api.inventory.Pokeball;
+import com.pokegoapi.api.listener.LoginListener;
+import com.pokegoapi.api.listener.PokemonListener;
+import com.pokegoapi.api.listener.TutorialListener;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
+import com.pokegoapi.api.player.PlayerAvatar;
 import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.api.pokemon.EggPokemon;
 import com.pokegoapi.api.pokemon.HatchedEgg;
 import com.pokegoapi.api.pokemon.Pokemon;
+import com.pokegoapi.api.pokemon.StarterPokemon;
 import com.pokegoapi.api.settings.Settings;
 import com.pokegoapi.auth.PtcCredentialProvider;
 import com.pokegoapi.google.common.geometry.S2LatLng;
@@ -23,7 +30,6 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 import okhttp3.OkHttpClient;
 
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -86,6 +92,55 @@ public class PokemonHandler {
             try {
                 OkHttpClient client = new OkHttpClient();
                 API = new PokemonGo(client);
+                API.addListener(new LoginListener() {
+                    @Override
+                    public void onLogin(PokemonGo api) {
+                    }
+
+                    @Override
+                    public void onChallenge(PokemonGo api, String challenge) {
+                        PokemonGO.LOGGER.info("Challenge required: " + challenge);
+                    }
+                });
+                //TODO All of these tutorials
+                API.addListener(new TutorialListener() {
+                    @Override
+                    public String claimName(PokemonGo api, String lastFailure) {
+                        return lastFailure != null ? null : username;
+                    }
+
+                    @Override
+                    public StarterPokemon selectStarter(PokemonGo api) {
+                        return null;
+                    }
+
+                    @Override
+                    public PlayerAvatar selectAvatar(PokemonGo api) {
+                        return null;
+                    }
+                });
+                API.addListener(new PokemonListener() {
+                    @Override
+                    public boolean onEggHatch(PokemonGo api, HatchedEgg hatchedEgg) {
+                        PokeBank pokebank = API.getInventories().getPokebank();
+                        Pokemon pokemon = pokebank.getPokemonById(hatchedEgg.getId());
+                        PokemonGO.LOGGER.info("Egg Hatched: " + pokemon.getPokemonId().name());
+                        PokemonGO.LOGGER.info("Candy: " + hatchedEgg.getCandy());
+                        PokemonGO.LOGGER.info("Experience: " + hatchedEgg.getExperience());
+                        PokemonGO.LOGGER.info("Stardust: " + hatchedEgg.getStardust());
+                        //TODO Open GUI
+                        return true;
+                    }
+
+                    @Override
+                    public void onEncounter(PokemonGo api, long encounterID, CatchablePokemon pokemon, EncounterTypeOuterClass.EncounterType encounterType) {
+                    }
+
+                    @Override
+                    public boolean onCatchEscape(PokemonGo api, CatchablePokemon pokemon, Pokeball pokeball, int throwCount) {
+                        return true;
+                    }
+                });
                 API.login(new PtcCredentialProvider(client, username, password));
                 EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
                 API.setLocation(PokemonGO.GENERATOR.toLat(player.posZ), PokemonGO.GENERATOR.toLong(player.posX), 0);
@@ -101,21 +156,6 @@ public class PokemonHandler {
                 PokemonHandler.level = profile.getStats().getLevel();
                 PokemonHandler.experience = profile.getStats().getExperience();
                 PokemonHandler.authenticating = false;
-                PokemonHandler.addTask(() -> {
-                    try {
-                        URL challenge = PokemonRequestHandler.getChallenge();
-                        if (challenge != null) {
-                            PokemonGO.LOGGER.info("Challenge required. Asking for user input.");
-                            PokemonGO.LOGGER.info(challenge);
-                            //TODO
-                        } else {
-                            PokemonGO.LOGGER.info("No challenge required.");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                });
             } catch (Exception e) {
                 API = null;
                 System.err.println("Failed to authenticate.");
@@ -177,41 +217,21 @@ public class PokemonHandler {
                             }
                             List<EggIncubator> incubators = PokemonHandler.API.getInventories().getIncubators();
                             Set<EggPokemon> eggs = PokemonHandler.API.getInventories().getHatchery().getEggs();
-                            boolean queryEggs = false;
                             for (EggIncubator incubator : incubators) {
                                 double left = incubator.getKmLeftToWalk();
                                 boolean requested = REQUESTED_HATCHES.contains(incubator);
                                 if (!requested && left <= 0.0) {
                                     for (EggPokemon egg : eggs) {
                                         if (egg.isIncubate() && egg.getEggIncubatorId().equals(incubator.getId())) {
-                                            PokemonGO.LOGGER.info("Request Hatch");
                                             REQUESTED_HATCHES.add(incubator);
                                             PokemonHandler.addTask(() -> {
                                                 incubator.hatchEgg(egg);
                                                 return null;
                                             });
-                                            queryEggs = true;
                                             break;
                                         }
                                     }
                                 }
-                            }
-                            if (queryEggs) {
-                                PokemonHandler.addTask(() -> {
-                                    List<HatchedEgg> hatchedEggs = PokemonHandler.API.getInventories().getHatchery().queryHatchedEggs();
-                                    PokemonGO.LOGGER.info(hatchedEggs.size() + " eggs are ready to hatch!");
-                                    for (HatchedEgg hatchedEgg : hatchedEggs) {
-                                        PokeBank pokebank = API.getInventories().getPokebank();
-                                        Pokemon pokemon = pokebank.getPokemonById(hatchedEgg.getId());
-                                        PokemonGO.LOGGER.info(pokemon.getPokemonId().name());
-                                        PokemonGO.LOGGER.info(hatchedEgg.getCandy());
-                                        PokemonGO.LOGGER.info(hatchedEgg.getExperience());
-                                        PokemonGO.LOGGER.info(hatchedEgg.getStardust());
-                                        //TODO Open GUI
-                                    }
-                                    REQUESTED_HATCHES.clear();
-                                    return null;
-                                });
                             }
                         }
                     } catch (Exception e) {
@@ -229,7 +249,6 @@ public class PokemonHandler {
             try {
                 if (time - PokemonHandler.lastProfileUpdate > 10000) {
                     PokemonHandler.API.getPlayerProfile().updateProfile();
-                    PokemonHandler.API.getInventories().updateInventories();
                     PokemonHandler.lastProfileUpdate = time;
                 }
             } catch (Exception e) {

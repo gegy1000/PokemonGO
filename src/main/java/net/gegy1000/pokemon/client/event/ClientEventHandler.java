@@ -31,6 +31,7 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ClientEventHandler {
@@ -162,35 +163,44 @@ public class ClientEventHandler {
             double viewZ = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             RenderHelper.enableStandardItemLighting();
-            GlStateManager.disableCull();
+            GlStateManager.enableCull();
+            GlStateManager.cullFace(GlStateManager.CullFace.FRONT);
             GlStateManager.enableBlend();
             GlStateManager.enableFog();
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-            for (Gym gym : PokemonMapHandler.getGyms()) {
-                if (gym != null) {
-                    double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
-                    double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
-                    int y = player.worldObj.getTopSolidOrLiquidBlock(pos.setPos(x, 0, z)).getY();
-                    RenderHandler.GYM_RENDERER.render(gym, x - viewX, y - viewY, z - viewZ, partialTicks);
+            synchronized (PokemonMapHandler.MAP_LOCK) {
+                List<Gym> gyms = PokemonMapHandler.getGyms();
+                for (Gym gym : gyms) {
+                    if (gym != null) {
+                        double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
+                        double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
+                        int y = player.worldObj.getHeight(pos.setPos(x, 0, z)).getY();
+                        RenderHandler.GYM_RENDERER.render(gym, x - viewX, y - viewY, z - viewZ, partialTicks);
+                    }
+                }
+                GlStateManager.enableTexture2D();
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                List<Pokestop> pokestops = PokemonMapHandler.getPokestops();
+                for (Pokestop pokestop : pokestops) {
+                    if (pokestop != null) {
+                        double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
+                        double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
+                        int y = player.worldObj.getHeight(pos.setPos(x, 0, z)).getY();
+                        RenderHandler.POKESTOP_RENDERER.render(pokestop, x - viewX, y - viewY, z - viewZ, partialTicks);
+                    }
+                }
+                GlStateManager.disableCull();
+                List<CatchableRenderedPokemon> renderedPokemon = PokemonMapHandler.getCatchableRenderedPokemon();
+                for (CatchableRenderedPokemon pokemon : renderedPokemon) {
+                    CatchablePokemon catchablePokemon = pokemon.getPokemon();
+                    double x = PokemonGO.GENERATOR.fromLong(catchablePokemon.getLongitude());
+                    double z = PokemonGO.GENERATOR.fromLat(catchablePokemon.getLatitude());
+                    int y = player.worldObj.getHeight(pos.setPos(x, 0, z)).getY();
+                    RenderHandler.POKEMON_RENDERER.render(new CatchableRenderedPokemon(MC.theWorld, catchablePokemon, true, true), x - viewX, y - viewY, z - viewZ, partialTicks);
                 }
             }
-            GlStateManager.enableTexture2D();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            for (Pokestop pokestop : PokemonMapHandler.getPokestops()) {
-                if (pokestop != null) {
-                    double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
-                    double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
-                    int y = player.worldObj.getTopSolidOrLiquidBlock(pos.setPos(x, 0, z)).getY();
-                    RenderHandler.POKESTOP_RENDERER.render(pokestop, x - viewX, y - viewY, z - viewZ, partialTicks);
-                }
-            }
-            for (CatchableRenderedPokemon pokemon : PokemonMapHandler.getCatchableRenderedPokemon()) {
-                CatchablePokemon catchablePokemon = pokemon.getPokemon();
-                double x = PokemonGO.GENERATOR.fromLong(catchablePokemon.getLongitude());
-                double z = PokemonGO.GENERATOR.fromLat(catchablePokemon.getLatitude());
-                int y = player.worldObj.getTopSolidOrLiquidBlock(pos.setPos(x, 0, z)).getY();
-                RenderHandler.POKEMON_RENDERER.render(new CatchableRenderedPokemon(MC.theWorld, catchablePokemon, true, true), x - viewX, y - viewY, z - viewZ, partialTicks);
-            }
+            GlStateManager.enableCull();
+            GlStateManager.cullFace(GlStateManager.CullFace.BACK);
             GlStateManager.disableFog();
         } catch (Exception e) {
             e.printStackTrace();

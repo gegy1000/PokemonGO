@@ -35,19 +35,21 @@ public class GUIOverlay extends Gui {
     @SubscribeEvent
     public void onGuiRender(RenderGameOverlayEvent event) {
         EntityPlayerSP player = MC.thePlayer;
-        if (PokemonHandler.API != null && MC.theWorld.getWorldType() instanceof WorldTypePokemonEarth) {
-            Inventories inventories = PokemonHandler.API.getInventories();
-            try {
-                if (event.getType() == RenderGameOverlayEvent.ElementType.TEXT) {
-                    this.renderSpeed(player);
-                    this.renderEggs(inventories);
-                } else if (event.getType() == RenderGameOverlayEvent.ElementType.HOTBAR) {
-                    if (inventories != null) {
-                        this.renderNearby(inventories);
+        if (PokemonHandler.API != null && !PokemonHandler.authenticating && MC.theWorld.getWorldType() instanceof WorldTypePokemonEarth) {
+            if (!MC.gameSettings.showDebugInfo) {
+                Inventories inventories = PokemonHandler.API.getInventories();
+                try {
+                    if (event.getType() == RenderGameOverlayEvent.ElementType.TEXT) {
+                        this.renderSpeed(player);
+                        this.renderEggs(inventories);
+                    } else if (event.getType() == RenderGameOverlayEvent.ElementType.HOTBAR) {
+                        if (inventories != null) {
+                            this.renderNearby(inventories);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }
@@ -60,7 +62,7 @@ public class GUIOverlay extends Gui {
         int eggY = 15;
         if (inventories != null && inventories.getHatchery() != null) {
             Set<EggPokemon> eggs = inventories.getHatchery().getEggs();
-            if (eggs != null) {
+            if (eggs != null && eggs.size() > 0) {
                 for (EggPokemon egg : eggs) {
                     if (egg != null && egg.isIncubate()) {
                         MC.fontRendererObj.drawString(shortDecimalFormat.format(egg.getEggKmWalked()) + "/" + egg.getEggKmWalkedTarget() + "km", 22, eggY + 2, 0xFFFFFF);
