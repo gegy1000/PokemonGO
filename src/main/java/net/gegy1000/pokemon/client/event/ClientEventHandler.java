@@ -1,15 +1,11 @@
 package net.gegy1000.pokemon.client.event;
 
-import com.pokegoapi.api.map.pokemon.CatchablePokemon;
-import net.gegy1000.pokemon.PokemonGO;
 import net.gegy1000.pokemon.client.entity.PokemonEntity;
-import net.gegy1000.pokemon.client.gui.CapturePokemonGUI;
 import net.gegy1000.pokemon.client.gui.LoginGUI;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.gegy1000.pokemon.client.key.PokemonKeyBinds;
 import net.gegy1000.pokemon.client.renderer.PokemonObjectRenderer;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
-import net.gegy1000.pokemon.client.renderer.pokemon.CatchableRenderedPokemon;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.gegy1000.pokemon.client.util.PokemonMapHandler;
 import net.gegy1000.pokemon.server.world.gen.WorldTypePokemonEarth;
@@ -22,7 +18,6 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -79,18 +74,6 @@ public class ClientEventHandler {
         if (PokemonHandler.API != null && MC.currentScreen == null) {
             try {
                 EntityPlayerSP player = MC.thePlayer;
-                Map<CatchablePokemon, AxisAlignedBB> pokemonBounds = new HashMap<>();
-                for (CatchablePokemon pokemon : PokemonMapHandler.getCatchablePokemon()) {
-                    double x = PokemonGO.GENERATOR.fromLong(pokemon.getLongitude());
-                    double z = PokemonGO.GENERATOR.fromLat(pokemon.getLatitude());
-                    int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
-                    pokemonBounds.put(pokemon, new AxisAlignedBB(x - 2.0, y, z - 2.0, x + 2.0, y + 4.0, z + 2.0));
-                }
-                CatchablePokemon pokemon = this.getInteract(player, pokemonBounds);
-                if (pokemon != null) {
-                    MC.displayGuiScreen(new CapturePokemonGUI(pokemon));
-                    return;
-                }
 
                 Map<PokemonEntity, AxisAlignedBB> entityBounds = new HashMap<>();
                 for (PokemonEntity entity : PokemonMapHandler.getEntities()) {
@@ -100,7 +83,6 @@ public class ClientEventHandler {
                 PokemonEntity entity = this.getInteract(player, entityBounds);
                 if (entity != null) {
                     entity.onInteract();
-                    return;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -119,13 +101,13 @@ public class ClientEventHandler {
             AxisAlignedBB bound = entry.getValue();
             RayTraceResult intercept = bound.calculateIntercept(eyePosition, farLook);
             if (bound.isVecInside(eyePosition)) {
-                if (closestDistance >= 0.0D) {
+                if (closestDistance >= 0.0) {
                     interact = entry.getKey();
-                    closestDistance = 0.0D;
+                    closestDistance = 0.0;
                 }
             } else if (intercept != null) {
                 double distance = eyePosition.distanceTo(intercept.hitVec);
-                if (distance < closestDistance || closestDistance == 0.0D) {
+                if (distance < closestDistance || closestDistance == 0.0) {
                     interact = entry.getKey();
                     closestDistance = distance;
                 }
@@ -155,7 +137,6 @@ public class ClientEventHandler {
             GlStateManager.cullFace(GlStateManager.CullFace.FRONT);
             GlStateManager.enableBlend();
             GlStateManager.enableFog();
-            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
             synchronized (PokemonMapHandler.MAP_LOCK) {
                 List<PokemonEntity> entities = PokemonMapHandler.getEntities();
                 for (PokemonEntity entity : entities) {
@@ -176,18 +157,9 @@ public class ClientEventHandler {
                     }
                     GlStateManager.enableLighting();
                 }
-                GlStateManager.enableTexture2D();
-                GlStateManager.disableCull();
-                List<CatchableRenderedPokemon> renderedPokemon = PokemonMapHandler.getCatchableRenderedPokemon();
-                for (CatchableRenderedPokemon pokemon : renderedPokemon) {
-                    CatchablePokemon catchablePokemon = pokemon.getPokemon();
-                    double x = PokemonGO.GENERATOR.fromLong(catchablePokemon.getLongitude());
-                    double z = PokemonGO.GENERATOR.fromLat(catchablePokemon.getLatitude());
-                    int y = player.worldObj.getHeight(pos.setPos(x, 0, z)).getY();
-                    RenderHandler.POKEMON_RENDERER.render(new CatchableRenderedPokemon(MC.theWorld, catchablePokemon, true, true), x - viewX, y - viewY, z - viewZ, partialTicks);
-                }
             }
             GlStateManager.enableCull();
+            GlStateManager.enableTexture2D();
             GlStateManager.cullFace(GlStateManager.CullFace.BACK);
             GlStateManager.disableFog();
         } catch (Exception e) {

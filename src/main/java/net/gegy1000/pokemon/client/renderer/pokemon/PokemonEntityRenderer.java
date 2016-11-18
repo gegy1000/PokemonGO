@@ -1,6 +1,7 @@
 package net.gegy1000.pokemon.client.renderer.pokemon;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
+import net.gegy1000.pokemon.client.entity.CatchablePokemonEntity;
 import net.gegy1000.pokemon.client.renderer.PokemonObjectRenderer;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
 import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
@@ -13,12 +14,14 @@ import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
 
-public class PokemonRenderer extends PokemonObjectRenderer<RenderedPokemon> {
+public class PokemonEntityRenderer extends PokemonObjectRenderer<CatchablePokemonEntity> {
     @Override
-    public void render(RenderedPokemon pokemon, double x, double y, double z, float partialTicks) {
+    public void render(CatchablePokemonEntity entity, double x, double y, double z, float partialTicks) {
+        RenderedPokemon pokemon = entity.getPokemon();
         MC.entityRenderer.enableLightmap();
-        GlStateManager.pushMatrix();
         GlStateManager.disableCull();
+        GlStateManager.enableTexture2D();
+        GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
         int light = pokemon.getLight();
         GL11.glNormal3f(1.0F, 1.0F, 1.0F);

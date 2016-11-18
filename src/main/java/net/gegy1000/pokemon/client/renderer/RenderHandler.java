@@ -2,10 +2,12 @@ package net.gegy1000.pokemon.client.renderer;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
+import net.gegy1000.pokemon.client.entity.CatchablePokemonEntity;
 import net.gegy1000.pokemon.client.entity.GymEntity;
 import net.gegy1000.pokemon.client.entity.PokemonEntity;
 import net.gegy1000.pokemon.client.entity.PokestopEntity;
 import net.gegy1000.pokemon.client.renderer.model.DefaultPokemonModel;
+import net.gegy1000.pokemon.client.renderer.pokemon.PokemonEntityRenderer;
 import net.gegy1000.pokemon.client.renderer.pokemon.PokemonRenderer;
 import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.minecraft.client.model.ModelBase;
@@ -20,6 +22,8 @@ import java.util.concurrent.Callable;
 public class RenderHandler {
     public static final GymRenderer GYM_RENDERER = new GymRenderer();
     public static final PokestopRenderer POKESTOP_RENDERER = new PokestopRenderer();
+    public static final PokemonEntityRenderer POKEMON_ENTITY_RENDERER = new PokemonEntityRenderer();
+
     public static final PokemonRenderer POKEMON_RENDERER = new PokemonRenderer();
 
     public static final DefaultPokemonModel DEFAULT_POKEMON_MODEL = new DefaultPokemonModel();
@@ -32,6 +36,7 @@ public class RenderHandler {
     public static void onPreInit() {
         ENTITY_RENDERERS.put(GymEntity.class, GYM_RENDERER);
         ENTITY_RENDERERS.put(PokestopEntity.class, POKESTOP_RENDERER);
+        ENTITY_RENDERERS.put(CatchablePokemonEntity.class, POKEMON_ENTITY_RENDERER);
 
         //TODO Add custom models and textures here
         for (PokemonIdOuterClass.PokemonId pokemon : PokemonIdOuterClass.PokemonId.values()) {

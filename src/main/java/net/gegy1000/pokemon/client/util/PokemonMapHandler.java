@@ -8,11 +8,13 @@ import com.pokegoapi.api.map.pokemon.NearbyPokemon;
 import com.pokegoapi.api.settings.MapSettings;
 import com.pokegoapi.api.settings.Settings;
 import net.gegy1000.pokemon.PokemonGO;
+import net.gegy1000.pokemon.client.entity.CatchablePokemonEntity;
 import net.gegy1000.pokemon.client.entity.GymEntity;
 import net.gegy1000.pokemon.client.entity.PokemonEntity;
 import net.gegy1000.pokemon.client.entity.PokestopEntity;
 import net.gegy1000.pokemon.client.renderer.pokemon.CatchableRenderedPokemon;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.WorldClient;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -21,7 +23,6 @@ import java.util.List;
 public class PokemonMapHandler {
     public static final List<NearbyPokemon> NEARBY_POKEMONS = new LinkedList<>();
     public static final List<CatchablePokemon> CATCHABLE_POKEMON = new LinkedList<>();
-    public static final List<CatchableRenderedPokemon> CATCHABLE_RENDERED_POKEMON = new LinkedList<>();
     public static final List<Gym> GYMS = new LinkedList<>();
     public static final List<Pokestop> POKESTOPS = new LinkedList<>();
 
@@ -42,12 +43,6 @@ public class PokemonMapHandler {
     public static List<CatchablePokemon> getCatchablePokemon() {
         synchronized (MAP_LOCK) {
             return CATCHABLE_POKEMON;
-        }
-    }
-
-    public static List<CatchableRenderedPokemon> getCatchableRenderedPokemon() {
-        synchronized (MAP_LOCK) {
-            return CATCHABLE_RENDERED_POKEMON;
         }
     }
 
@@ -73,14 +68,21 @@ public class PokemonMapHandler {
         synchronized (MAP_LOCK) {
             CATCHABLE_POKEMON.remove(pokemon);
         }
-        PokemonMapHandler.updateRenderedPokemon();
+        PokemonMapHandler.updateEntities();
     }
 
-    public static void updateRenderedPokemon() {
+    public static void updateEntities() {
         synchronized (MAP_LOCK) {
-            CATCHABLE_RENDERED_POKEMON.clear();
-            for (CatchablePokemon pokemon : CATCHABLE_POKEMON) {
-                CATCHABLE_RENDERED_POKEMON.add(new CatchableRenderedPokemon(MINECRAFT.theWorld, pokemon, true, true));
+            ENTITIES.clear();
+            WorldClient world = MINECRAFT.theWorld;
+            for (CatchablePokemon catchablePokemon : CATCHABLE_POKEMON) {
+                ENTITIES.add(new CatchablePokemonEntity(world, catchablePokemon, new CatchableRenderedPokemon(world, catchablePokemon, true, true)));
+            }
+            for (Pokestop pokestop : POKESTOPS) {
+                ENTITIES.add(new PokestopEntity(world, pokestop));
+            }
+            for (Gym gym : GYMS) {
+                ENTITIES.add(new GymEntity(world, gym));
             }
         }
     }
@@ -104,7 +106,6 @@ public class PokemonMapHandler {
                         CATCHABLE_POKEMON.clear();
                         CATCHABLE_POKEMON.addAll(catchablePokemon);
                     }
-                    PokemonMapHandler.updateRenderedPokemon();
                     List<Gym> gyms = map.getGyms();
                     for (Gym gym : gyms) {
                         gym.getDefendingPokemon();
@@ -118,15 +119,7 @@ public class PokemonMapHandler {
                         POKESTOPS.clear();
                         POKESTOPS.addAll(pokestops);
                     }
-                    synchronized (MAP_LOCK) {
-                        ENTITIES.clear();
-                        for (Pokestop pokestop : pokestops) {
-                            ENTITIES.add(new PokestopEntity(MINECRAFT.theWorld, pokestop));
-                        }
-                        for (Gym gym : gyms) {
-                            ENTITIES.add(new GymEntity(MINECRAFT.theWorld, gym));
-                        }
-                    }
+                    PokemonMapHandler.updateEntities();
                     PokemonGO.LOGGER.info("Detected " + pokestops.size() + " Pokestops, " + gyms.size() + " Gyms, " + catchablePokemon.size() + " Pokemon, and " + nearbyPokemon.size() + " nearby!");
                 }
             } catch (Exception e) {
@@ -138,7 +131,6 @@ public class PokemonMapHandler {
     public static void clear() {
         synchronized (MAP_LOCK) {
             CATCHABLE_POKEMON.clear();
-            CATCHABLE_RENDERED_POKEMON.clear();
             GYMS.clear();
             POKESTOPS.clear();
             ENTITIES.clear();
