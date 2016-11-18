@@ -2,22 +2,21 @@ package net.gegy1000.pokemon.client.renderer;
 
 import POGOProtos.Data.PokemonDataOuterClass;
 import com.pokegoapi.api.gym.Gym;
+import net.gegy1000.pokemon.client.entity.GymEntity;
 import net.gegy1000.pokemon.client.renderer.model.GymModel;
 import net.gegy1000.pokemon.client.renderer.pokemon.DataRenderedPokemon;
 import net.gegy1000.pokemon.client.renderer.pokemon.RenderedPokemon;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-public class GymRenderer extends PokemonObjectRenderer<Gym> {
-    private static final ResourceLocation GYM_TEXTURE = new ResourceLocation("textures/entity/creeper/creeper.png");
+public class GymRenderer extends PokemonObjectRenderer<GymEntity> {
     private static final GymModel GYM_MODEL = new GymModel();
 
     @Override
-    public void render(Gym gym, double x, double y, double z, float partialTicks) {
-        MC.getTextureManager().bindTexture(GYM_TEXTURE);
+    public void render(GymEntity entity, double x, double y, double z, float partialTicks) {
+        Gym gym = entity.getGym();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glNormal3f(1.0F, 1.0F, 1.0F);
         GlStateManager.disableTexture2D();

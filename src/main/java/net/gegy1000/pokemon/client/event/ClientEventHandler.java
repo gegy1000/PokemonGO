@@ -1,15 +1,13 @@
 package net.gegy1000.pokemon.client.event;
 
-import com.pokegoapi.api.gym.Gym;
-import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.pokemon.CatchablePokemon;
 import net.gegy1000.pokemon.PokemonGO;
+import net.gegy1000.pokemon.client.entity.PokemonEntity;
 import net.gegy1000.pokemon.client.gui.CapturePokemonGUI;
-import net.gegy1000.pokemon.client.gui.GymGUI;
 import net.gegy1000.pokemon.client.gui.LoginGUI;
-import net.gegy1000.pokemon.client.gui.PokestopGUI;
 import net.gegy1000.pokemon.client.gui.view.PokemonViewGUI;
 import net.gegy1000.pokemon.client.key.PokemonKeyBinds;
+import net.gegy1000.pokemon.client.renderer.PokemonObjectRenderer;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
 import net.gegy1000.pokemon.client.renderer.pokemon.CatchableRenderedPokemon;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
@@ -18,7 +16,10 @@ import net.gegy1000.pokemon.server.world.gen.WorldTypePokemonEarth;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -91,29 +92,14 @@ public class ClientEventHandler {
                     return;
                 }
 
-                Map<Pokestop, AxisAlignedBB> pokestopBounds = new HashMap<>();
-                for (Pokestop pokestop : PokemonMapHandler.getPokestops()) {
-                    double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
-                    double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
-                    int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
-                    pokestopBounds.put(pokestop, new AxisAlignedBB(x - 2.0, y, z - 2.0, x + 2.0, y + 6.0, z + 3.0));
-                }
-                Pokestop pokestop = this.getInteract(player, pokestopBounds);
-                if (pokestop != null) {
-                    MC.displayGuiScreen(new PokestopGUI(pokestop));
-                    return;
+                Map<PokemonEntity, AxisAlignedBB> entityBounds = new HashMap<>();
+                for (PokemonEntity entity : PokemonMapHandler.getEntities()) {
+                    entityBounds.put(entity, entity.getBounds());
                 }
 
-                Map<Gym, AxisAlignedBB> gymBounds = new HashMap<>();
-                for (Gym gym : PokemonMapHandler.getGyms()) {
-                    double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
-                    double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
-                    int y = player.worldObj.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z)).getY();
-                    gymBounds.put(gym, new AxisAlignedBB(x - 3.0, y, z - 3.0, x + 3.0, y + 12.0, z + 3.0));
-                }
-                Gym gym = this.getInteract(player, gymBounds);
-                if (gym != null) {
-                    MC.displayGuiScreen(new GymGUI(gym));
+                PokemonEntity entity = this.getInteract(player, entityBounds);
+                if (entity != null) {
+                    entity.onInteract();
                     return;
                 }
             } catch (Exception e) {
@@ -161,6 +147,8 @@ public class ClientEventHandler {
             double viewX = player.prevPosX + (player.posX - player.prevPosX) * partialTicks;
             double viewY = player.prevPosY + (player.posY - player.prevPosY) * partialTicks;
             double viewZ = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
+            ICamera frustum = new Frustum();
+            frustum.setPosition(viewX, viewY, viewZ);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             RenderHelper.enableStandardItemLighting();
             GlStateManager.enableCull();
@@ -169,26 +157,26 @@ public class ClientEventHandler {
             GlStateManager.enableFog();
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
             synchronized (PokemonMapHandler.MAP_LOCK) {
-                List<Gym> gyms = PokemonMapHandler.getGyms();
-                for (Gym gym : gyms) {
-                    if (gym != null) {
-                        double x = PokemonGO.GENERATOR.fromLong(gym.getLongitude());
-                        double z = PokemonGO.GENERATOR.fromLat(gym.getLatitude());
-                        int y = player.worldObj.getHeight(pos.setPos(x, 0, z)).getY();
-                        RenderHandler.GYM_RENDERER.render(gym, x - viewX, y - viewY, z - viewZ, partialTicks);
+                List<PokemonEntity> entities = PokemonMapHandler.getEntities();
+                for (PokemonEntity entity : entities) {
+                    if (frustum.isBoundingBoxInFrustum(entity.getBounds())) {
+                        PokemonObjectRenderer<PokemonEntity> renderer = RenderHandler.getRenderer(entity);
+                        renderer.render(entity, entity.getX() - viewX, entity.getY() - viewY, entity.getZ() - viewZ, partialTicks);
                     }
+                }
+                if (MC.getRenderManager().isDebugBoundingBox()) {
+                    GlStateManager.disableCull();
+                    GlStateManager.disableLighting();
+                    GlStateManager.disableTexture2D();
+                    for (PokemonEntity entity : entities) {
+                        AxisAlignedBB bounds = entity.getBounds();
+                        if (frustum.isBoundingBoxInFrustum(bounds)) {
+                            RenderGlobal.drawBoundingBox(bounds.minX - viewX, bounds.minY - viewY, bounds.minZ - viewZ, bounds.maxX - viewX, bounds.maxY - viewY, bounds.maxZ - viewZ, 1.0F, 1.0F, 1.0F, 1.0F);
+                        }
+                    }
+                    GlStateManager.enableLighting();
                 }
                 GlStateManager.enableTexture2D();
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                List<Pokestop> pokestops = PokemonMapHandler.getPokestops();
-                for (Pokestop pokestop : pokestops) {
-                    if (pokestop != null) {
-                        double x = PokemonGO.GENERATOR.fromLong(pokestop.getLongitude());
-                        double z = PokemonGO.GENERATOR.fromLat(pokestop.getLatitude());
-                        int y = player.worldObj.getHeight(pos.setPos(x, 0, z)).getY();
-                        RenderHandler.POKESTOP_RENDERER.render(pokestop, x - viewX, y - viewY, z - viewZ, partialTicks);
-                    }
-                }
                 GlStateManager.disableCull();
                 List<CatchableRenderedPokemon> renderedPokemon = PokemonMapHandler.getCatchableRenderedPokemon();
                 for (CatchableRenderedPokemon pokemon : renderedPokemon) {

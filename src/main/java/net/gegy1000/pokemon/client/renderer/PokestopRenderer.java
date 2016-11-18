@@ -1,18 +1,17 @@
 package net.gegy1000.pokemon.client.renderer;
 
 import com.pokegoapi.api.map.fort.Pokestop;
+import net.gegy1000.pokemon.client.entity.PokestopEntity;
 import net.gegy1000.pokemon.client.renderer.model.PokestopModel;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.util.ResourceLocation;
 
-public class PokestopRenderer extends PokemonObjectRenderer<Pokestop> {
-    private static final ResourceLocation POKESTOP_TEXTURE = new ResourceLocation("textures/entity/pig/pig.png");
+public class PokestopRenderer extends PokemonObjectRenderer<PokestopEntity> {
     private static final PokestopModel POKESTOP_MODEL = new PokestopModel();
 
     @Override
-    public void render(Pokestop pokestop, double x, double y, double z, float partialTicks) {
-        MC.getTextureManager().bindTexture(POKESTOP_TEXTURE);
+    public void render(PokestopEntity entity, double x, double y, double z, float partialTicks) {
+        Pokestop pokestop = entity.getPokestop();
         GlStateManager.disableTexture2D();
         GlStateManager.color(pokestop.hasLure() ? 1.0F : 0.2F, 0.6F, pokestop.canLoot(true) ? 1.0F : 2.0F);
         GlStateManager.pushMatrix();

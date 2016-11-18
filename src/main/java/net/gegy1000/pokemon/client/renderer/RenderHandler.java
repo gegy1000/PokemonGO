@@ -2,6 +2,9 @@ package net.gegy1000.pokemon.client.renderer;
 
 import POGOProtos.Enums.PokemonIdOuterClass;
 import net.gegy1000.earth.client.texture.AdvancedDynamicTexture;
+import net.gegy1000.pokemon.client.entity.GymEntity;
+import net.gegy1000.pokemon.client.entity.PokemonEntity;
+import net.gegy1000.pokemon.client.entity.PokestopEntity;
 import net.gegy1000.pokemon.client.renderer.model.DefaultPokemonModel;
 import net.gegy1000.pokemon.client.renderer.pokemon.PokemonRenderer;
 import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
@@ -21,10 +24,15 @@ public class RenderHandler {
 
     public static final DefaultPokemonModel DEFAULT_POKEMON_MODEL = new DefaultPokemonModel();
 
+    private static final Map<Class<? extends PokemonEntity>, PokemonObjectRenderer<?>> ENTITY_RENDERERS = new HashMap<>();
+
     private static final Map<PokemonIdOuterClass.PokemonId, ModelBase> POKEMON_MODELS = new HashMap<>();
     private static final Map<PokemonIdOuterClass.PokemonId, Callable<Boolean>> POKEMON_TEXTURES = new HashMap<>();
 
     public static void onPreInit() {
+        ENTITY_RENDERERS.put(GymEntity.class, GYM_RENDERER);
+        ENTITY_RENDERERS.put(PokestopEntity.class, POKESTOP_RENDERER);
+
         //TODO Add custom models and textures here
         for (PokemonIdOuterClass.PokemonId pokemon : PokemonIdOuterClass.PokemonId.values()) {
             POKEMON_TEXTURES.putIfAbsent(pokemon, () -> {
@@ -52,5 +60,9 @@ public class RenderHandler {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static <T extends PokemonEntity> PokemonObjectRenderer<T> getRenderer(T entity) {
+        return (PokemonObjectRenderer<T>) ENTITY_RENDERERS.get(entity.getClass());
     }
 }

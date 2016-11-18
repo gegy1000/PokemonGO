@@ -179,6 +179,7 @@ public class PokemonHandler {
             e.printStackTrace();
         }
         PokemonGUIHandler.update();
+        PokemonMapHandler.update();
         if (player != null) {
             if (API != null && !authenticating) {
                 API.setLatitude(PokemonGO.GENERATOR.toLat(player.posZ));

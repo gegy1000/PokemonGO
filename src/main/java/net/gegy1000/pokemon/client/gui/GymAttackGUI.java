@@ -12,6 +12,7 @@ import com.pokegoapi.api.pokemon.PokemonMoveMetaRegistry;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 import net.gegy1000.pokemon.PokemonGO;
+import net.gegy1000.pokemon.client.entity.GymEntity;
 import net.gegy1000.pokemon.client.gui.element.ModelViewElement;
 import net.gegy1000.pokemon.client.renderer.RenderHandler;
 import net.gegy1000.pokemon.client.renderer.pokemon.GymRenderedPokemon;
@@ -19,6 +20,7 @@ import net.gegy1000.pokemon.client.util.GymBattle;
 import net.gegy1000.pokemon.client.util.PokemonGUIHandler;
 import net.gegy1000.pokemon.client.util.PokemonHandler;
 import net.ilexiconn.llibrary.LLibrary;
+import net.ilexiconn.llibrary.client.ClientProxy;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
@@ -29,6 +31,7 @@ import java.io.IOException;
 @SideOnly(Side.CLIENT)
 public class GymAttackGUI extends PokemonGUI {
     private final Gym gym;
+    private final GymEntity entity;
     private final Pokemon[] team;
     private GymBattle battle;
     private String name = "Unnamed";
@@ -46,6 +49,7 @@ public class GymAttackGUI extends PokemonGUI {
 
     public GymAttackGUI(Gym gym, Pokemon[] team) {
         this.gym = gym;
+        this.entity = new GymEntity(ClientProxy.MINECRAFT.theWorld, gym);
         this.team = team;
         PokemonHandler.addTask(() -> {
             try {
@@ -92,7 +96,7 @@ public class GymAttackGUI extends PokemonGUI {
         this.addElement(this.viewElement = new ModelViewElement<>(this, 0.0F, 46.0F, this.width, this.height - 46, (view) -> {
             GlStateManager.scale(1.0F, -1.0F, 1.0F);
             float partialTicks = LLibrary.PROXY.getPartialTicks();
-            RenderHandler.GYM_RENDERER.render(this.gym, 0.0, -9.2, 0.0, partialTicks);
+            RenderHandler.GYM_RENDERER.render(this.entity, 0.0, -9.2, 0.0, partialTicks);
             GlStateManager.enableTexture2D();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.scale(0.25F, 0.25F, 0.25F);
